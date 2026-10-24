@@ -5,14 +5,14 @@
 ## Verified code evidence
 
 - [x] Public repository: [sibiselvam2027-cpu/eventrelay-fetchathon](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon).
-- [x] Latest CI-verified published commit: `1a2297db3d45e9799fd0b34bb28e92a14ec8ce1b`.
+- [x] Latest CI-verified published commit: `9822b8c309f4b0fd53ae3cbef96e88614f124932`.
 - [x] Initial local verification: **65 tests passed** before publication.
 - [x] Published source fixes: **68 tests passed locally and in CI**.
-- [x] Final SDK-client/guided-recovery source: **69 local tests passed**; all five hosted projects rebuilt and compiled. CI for this final revision is pending.
-- [x] GitHub Actions passed for that exact commit: [Verify EventRelay](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40084970945).
-- [x] CI job logs independently confirm **68 tests — OK**. The job also passed hosted-project build/compile and the complete synthetic-workflow checks. [CI job](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40084970945/job/120845928740)
+- [x] SDK-client/guided-recovery source: **69 local and CI tests passed**; all five hosted projects rebuilt and compiled.
+- [x] GitHub Actions passed for that exact commit: [Verify EventRelay](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40085835961).
+- [x] CI job logs independently confirm **69 tests — OK**. The job also passed hosted-project build/compile and the complete synthetic-workflow checks. [CI job](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40085835961/job/120848461907)
 
-The CI run completed at **15:42:33 IST on 24 October 2026**. A subsequent ASI SDK client revision is under verification; a later source commit requires its own CI result.
+The CI run completed at **15:55:36 IST on 24 October 2026**. A subsequent timeout-budget revision requires its own test and CI evidence.
 
 ## Live hosted deployment
 

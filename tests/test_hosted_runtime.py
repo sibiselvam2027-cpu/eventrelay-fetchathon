@@ -86,6 +86,16 @@ class HostedRuntimeTests(unittest.TestCase):
         self.environment = patch.dict(os.environ, self.settings)
         self.environment.start()
         self.addCleanup(self.environment.stop)
+        async def no_socket_timeout(awaitable, timeout):
+            return await awaitable
+        self.timeouts = patch("eventrelay.hosted_runtime._with_timeout", new=no_socket_timeout)
+        self.timeouts.start()
+        self.addCleanup(self.timeouts.stop)
+        async def no_socket_gather(*awaitables):
+            return [await item for item in awaitables]
+        self.gather = patch("eventrelay.hosted_runtime.asyncio.gather", new=no_socket_gather)
+        self.gather.start()
+        self.addCleanup(self.gather.stop)
 
     def agent(self, role):
         return attach(HostAgent(role), role)

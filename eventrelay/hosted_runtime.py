@@ -7,6 +7,7 @@ Timer changes are visible through ASI status polling; unsolicited ASI delivery
 across conversation sessions is deliberately not assumed.
 """
 
+import asyncio
 import json
 import os
 import re
@@ -149,11 +150,24 @@ def _finish(session, transport, response, actor, recipient, chat_session, addres
     return outgoing
 
 
+async def _with_timeout(awaitable, timeout):
+    return await asyncio.wait_for(awaitable, timeout=timeout)
+
+
+async def _send(ctx, recipient, message, timeout=4.0):
+    try:
+        await _with_timeout(ctx.send(recipient, message), timeout)
+        return True
+    except asyncio.TimeoutError:
+        ctx.logger.warning("Hosted message delivery exceeded its time budget; persisted offers can retry.")
+        return False
+
+
 async def _deliver(ctx, response, outgoing, recipient=None):
     if recipient:
-        await ctx.send(recipient, _chat_message(response))
-    for destination, offer in outgoing:
-        await ctx.send(destination, offer)
+        await _send(ctx, recipient, _chat_message(response))
+    if outgoing:
+        await asyncio.gather(*(_send(ctx, destination, offer) for destination, offer in outgoing))
 
 
 def attach(agent, role):
@@ -179,7 +193,7 @@ def attach(agent, role):
 
     @chat.on_message(ChatMessage)
     async def receive_chat(ctx: Context, sender: str, msg: ChatMessage):
-        await ctx.send(sender, ChatAcknowledgement(acknowledged_msg_id=msg.msg_id))
+        await _send(ctx, sender, ChatAcknowledgement(acknowledged_msg_id=msg.msg_id), timeout=2.0)
         text = "\n".join(block.text for block in msg.content if isinstance(block, TextContent)).strip()
         if not text:
             return
@@ -190,7 +204,7 @@ def attach(agent, role):
             if role != "coordinator":
                 staff_id = staff_senders.get(sender)
                 if staff_id not in STAFF[role]:
-                    await ctx.send(sender, _chat_message({"text": "This chat is not an authenticated crew identity. Report the issue through EventRelay Coordinator."}))
+                    await _send(ctx, sender, _chat_message({"text": "This chat is not an authenticated crew identity. Report the issue through EventRelay Coordinator."}))
                     return
                 command = _staff_command(text)
                 transport = HostedTransport(ctx.storage)
@@ -207,8 +221,8 @@ def attach(agent, role):
                                            action=command["action"], version=command["expected_version"],
                                            evidence=command["evidence"])
                 transport.save()
-                await ctx.send(addresses["coordinator"], result)
-                await ctx.send(sender, _chat_message({"text": "Your crew response was forwarded for issue-state validation."}))
+                await _send(ctx, addresses["coordinator"], result)
+                await _send(ctx, sender, _chat_message({"text": "Your crew response was forwarded for issue-state validation."}))
                 return
             organizers = {value.strip() for value in str(_setting(ctx, "EVENTRELAY_ORGANIZER_SENDERS")).split(",") if value.strip()}
             actor = _actor(sender, ctx.session, staff_senders, organizers)
@@ -227,7 +241,10 @@ def attach(agent, role):
                     context = context_session.service.context(actor)
                 finally:
                     context_session.close()
-                intent = await extract_intent_async(text, context)
+                try:
+                    intent = await _with_timeout(extract_intent_async(text, context, timeout=7.0), 8.0)
+                except asyncio.TimeoutError:
+                    raise ASIError("The AI service exceeded its time budget. Continue with the manual guided form.") from None
             # Reload AFTER the LLM await so no stale snapshot can overwrite a
             # staff response or timer mutation that happened during reasoning.
             session = open_hosted_service(ctx.storage)
@@ -242,7 +259,7 @@ def attach(agent, role):
             await _deliver(ctx, response, outgoing, sender)
         except ASIError:
             if role != "coordinator":
-                await ctx.send(sender, _chat_message({"text": "The AI service is unavailable. Use the coordinator's guided report form."}))
+                await _send(ctx, sender, _chat_message({"text": "The AI service is unavailable. Use the coordinator's guided report form."}))
                 return
             recovery = open_hosted_service(ctx.storage)
             try:
@@ -251,12 +268,12 @@ def attach(agent, role):
             finally:
                 recovery.close()
             # This response has a fresh form, never an issue or staff offer.
-            await ctx.send(sender, _chat_message(response))
+            await _send(ctx, sender, _chat_message(response))
         except ValueError as exc:
-            await ctx.send(sender, _chat_message({"text": str(exc)}))
+            await _send(ctx, sender, _chat_message({"text": str(exc)}))
         except Exception as exc:
             ctx.logger.error(f"Hosted event step failed ({type(exc).__name__})")
-            await ctx.send(sender, _chat_message({"text": "This event step could not complete. Check status and retry; delivery alone has not accepted or closed an issue."}))
+            await _send(ctx, sender, _chat_message({"text": "This event step could not complete. Check status and retry; delivery alone has not accepted or closed an issue."}))
 
     stage("04 chat handler registered")
     if role == "coordinator":
@@ -328,7 +345,7 @@ def attach(agent, role):
             transport.save()
             decision = _mapping(ctx, "EVENTRELAY_DEMO_DECISIONS").get(msg.staff_id)
             if _setting(ctx, "EVENTRELAY_DEMO_MODE", "0") == "1" and decision in {"accept", "decline"}:
-                await ctx.send(sender, VendorDecision(offer_id=msg.offer_id, issue_id=msg.issue_id,
+                await _send(ctx, sender, VendorDecision(offer_id=msg.offer_id, issue_id=msg.issue_id,
                                                       staff_id=msg.staff_id, decision=decision,
                                                       version=msg.version, simulated=True))
 

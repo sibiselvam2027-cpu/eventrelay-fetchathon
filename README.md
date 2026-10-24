@@ -5,13 +5,13 @@ EventRelay coordinates event-day problems across independent vendor teams. A fam
 ![tag:innovationlab](https://img.shields.io/badge/innovationlab-3D8BD3)
 ![tag:hackathon](https://img.shields.io/badge/hackathon-5F43F1)
 
-**[Try EventRelay in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu)** · [Public repository](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) · [68-test CI result](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40084970945)
+**[Try EventRelay in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu)** · [Public repository](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) · [69-test CI result](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40085835961)
 
 **Verified status, 24 October 2026:** all five hosted agents started and registered. ASI:One reached the deployed coordinator and displayed its actual response at approximately 15:40 IST, verifying the ACP request/reply path. That request returned an ASI1 authentication error, so natural-language routing and the complete live workflow are not yet verified. Follow-up testing also encountered ASI:One frontend 503/504 errors and stalled message delivery. The latest ASI client changes remain under verification; no successful fix or shared-chat demonstration is claimed.
 
 The latest code uses the documented OpenAI-compatible SDK client for ASI1 and provides a clearly labelled **manual guided form inside ASI:One** when ASI1 is unavailable. This recovery requires the user to supply the category and location; it does not claim successful AI reasoning. Live rendering of that recovery form remains unverified.
 
-The linked CI result verifies published commit `1a2297db3d45e9799fd0b34bb28e92a14ec8ce1b`. Subsequent ASI client and guided-recovery changes require their own test and CI evidence. See [deployment evidence](docs/LIVE_DEPLOYMENT.md) and [the submission checklist](docs/SUBMISSION_CHECKLIST.md).
+The linked CI result verifies published commit `9822b8c309f4b0fd53ae3cbef96e88614f124932`, including the SDK client and guided-recovery source. Any subsequent timeout-budget changes require their own test and CI evidence. See [deployment evidence](docs/LIVE_DEPLOYMENT.md) and [the submission checklist](docs/SUBMISSION_CHECKLIST.md).
 
 ## Architecture
 
@@ -90,7 +90,7 @@ Measure time to an accepted owner, time an issue remains unowned, manual follow-
 
 ## Review and submission status
 
-Code, local tests, and the 68-test CI result for the published revision are available. All five hosted startups and one ASI:One-to-coordinator ACP round trip have been observed. Natural-language routing, the complete multi-agent ASI:One workflow, a public shared chat, and the demo video remain unverified. The current ASI client revision is being checked separately; a local test, successful upload, or authentication-error reply does not establish a completed workflow.
+Code, local tests, and the 69-test CI result for the published revision are available. All five hosted startups and one ASI:One-to-coordinator ACP round trip have been observed. Natural-language routing, the complete multi-agent ASI:One workflow, a public shared chat, and the demo video remain unverified. Any later timeout-budget revision is checked separately; a local test, successful upload, or authentication-error reply does not establish a completed workflow.
 
 The bundled event is synthetic. Real deployments require event-specific staff identities and responsibility mappings. Automatic demo responses are explicitly labelled; production mode requires authenticated staff responses. No WhatsApp, phone, or real-world repair integration is claimed.
 
