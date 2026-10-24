@@ -5,13 +5,14 @@
 ## Verified code evidence
 
 - [x] Public repository: [sibiselvam2027-cpu/eventrelay-fetchathon](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon).
-- [x] CI-verified source: `8896fbb2dc0f934e593f509752859912437471f0`.
+- [x] CI-verified final source: `c5f0c8d5882f01b055f8b52337a638c8d109d243`.
 - [x] Initial local verification: **65 tests passed** before publication.
 - [x] Published source fixes: **68 tests passed locally and in CI**.
 - [x] SDK-client/guided-recovery source: **69 local and CI tests passed**; all five hosted projects rebuilt and compiled.
 - [x] Additional timeout-recovery regression: **70 tests passed in CI**. [Verify EventRelay](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086612325)
 - [x] CI job logs confirm the 70-test baseline; hosted-project build/compile and synthetic-workflow checks also passed. [CI job](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086612325/job/120850745755)
 - [x] CRLF normalization and stored-route migration source: **73 local and CI tests — OK**. [Verified CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40087069509)
+- [x] Final envelope-lifetime and safe-diagnostic revision: **74 local and CI tests — OK**; five hosted builds/compilation and the synthetic scenario passed. [Final source CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40089811983)
 
 The configuration/migration changes have passed CI. Local or CI success does not complete the live ASI:One UI evidence items below.
 

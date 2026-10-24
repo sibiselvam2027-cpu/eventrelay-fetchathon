@@ -5,7 +5,7 @@ EventRelay coordinates event-day problems across independent vendor teams. A fam
 ![tag:innovationlab](https://img.shields.io/badge/innovationlab-3D8BD3)
 ![tag:hackathon](https://img.shields.io/badge/hackathon-5F43F1)
 
-**[Try EventRelay in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu)** · [Public repository](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) · [73-test CI evidence](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40087069509)
+**[Try EventRelay in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu)** · [Public repository](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) · [74-test CI evidence](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40089811983)
 
 **Verified status, 24 October 2026:** all five hosted agents started and registered. Actual hosted rehearsals closed synthetic water, audio, power, and cleanup incidents by **16:25:07 IST**. Water included primary decline and backup acceptance; audio included same-issue reopening and reacceptance. A live natural-language status query returned the stored closed water issue. Staff decisions, physical work, and reporter actions were explicitly synthetic. [Live hosted workflow proof](docs/LIVE_WORKFLOW_PROOF.md)
 
@@ -13,7 +13,7 @@ The complete **ASI:One user-interface workflow remains unverified**. Earlier fro
 
 The latest code uses the documented OpenAI-compatible SDK client for ASI1 and provides a clearly labelled **manual guided form inside ASI:One** when ASI1 is unavailable. This recovery requires the user to supply the category and location; it does not claim successful AI reasoning. Live rendering of that recovery form remains unverified.
 
-The linked CI result verifies source commit `8896fbb2dc0f934e593f509752859912437471f0`, with **73 local and CI tests passed**. It strips Windows carriage returns from public peer configuration, preserves existing issue records while normalizing stored peer routes, and writes generated environment examples with LF line endings. Source tests and the live hosted rehearsal remain separate from a complete ASI:One UI demonstration. See [deployment evidence](docs/LIVE_DEPLOYMENT.md) and [the submission checklist](docs/SUBMISSION_CHECKLIST.md).
+The linked CI result verifies source commit `c5f0c8d5882f01b055f8b52337a638c8d109d243`, with **74 local and CI tests passed**, hosted builds/compilation, and the synthetic scenario. It includes Windows configuration/route normalization, safe diagnostics, and normal envelope lifetimes with bounded local waits. Source tests and the live hosted rehearsal remain separate from a complete ASI:One UI demonstration. See [deployment evidence](docs/LIVE_DEPLOYMENT.md) and [the submission checklist](docs/SUBMISSION_CHECKLIST.md).
 
 ## Architecture
 

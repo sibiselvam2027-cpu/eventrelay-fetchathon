@@ -1,6 +1,6 @@
 # Verification record
 
-**Current published source baseline: 73 tests passed locally and in [GitHub Actions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40087069509).** Subsequent docs-only rehearsal evidence also passed [CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40088130110). Actual hosted rehearsals closed four synthetic service categories and exercised same-ID reopening plus one natural-language status lookup. Full ASI:One UI completion remains pending. The entries below preserve the verification history and its limits.
+**Current published source baseline: 74 tests passed locally and in [GitHub Actions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40089811983), source commit `c5f0c8d5882f01b055f8b52337a638c8d109d243`.** Hosted builds/compilation and the synthetic scenario also passed. Actual hosted rehearsals closed four synthetic service categories and exercised same-ID reopening plus one natural-language status lookup. Full ASI:One UI completion remains pending. The entries below preserve the verification history and its limits.
 
 Local verification on 24 October 2026 used Python 3.12.14, uAgents 0.25.5, uAgents Core 0.4.12 and Pydantic 2.14.1.
 
@@ -52,6 +52,6 @@ The plain-language request “show status of ER-A50BFBB4” returned the actual 
 
 ## Final transport and safe diagnostic revision
 
-The final source preserves the SDK's normal 30-second envelope lifetime while retaining independent local acknowledgment/final-send wait budgets of 2/4 seconds. A regression checks both values separately. Safe diagnostics record whether a key is present and a known model name or `[custom]`; no credential or arbitrary model-setting value is logged. **74 local tests passed**, all five hosted projects were regenerated, and Python compilation passed. CI for this publication must be verified separately.
+The final source preserves the SDK's normal 30-second envelope lifetime while retaining independent local acknowledgment/final-send wait budgets of 2/4 seconds. A regression checks both values separately. Safe diagnostics record whether a key is present and a known model name or `[custom]`; no credential or arbitrary model-setting value is logged. **74 tests passed locally and in [CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40089811983)** for source commit `c5f0c8d5882f01b055f8b52337a638c8d109d243`; all five hosted builds/compilation and the synthetic scenario also passed. CI completed at approximately 16:55:33 IST.
 
 At the final frontend check, an ASI:One attempt still failed to start and another browser attempt remained loading. These are observed attempt failures, not a claim of a platform-wide outage. A completed public shared chat, 3–5 minute demo video, and actual competition submission are not yet available.
