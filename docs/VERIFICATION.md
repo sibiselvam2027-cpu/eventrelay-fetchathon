@@ -60,4 +60,10 @@ At the final frontend check, an ASI:One attempt still failed to start and anothe
 
 The team received an organizer announcement reporting ASI:One downtime, extending submission until **11:59 PM IST on 24 October 2026**, and recommending Agentverse **Agent Profile → Testing → Manual Testing** for demonstrations. This is recorded as a supplied organizer statement; it is not an independent service-wide status measurement. The screenshot, organizer identity, and private contact information are not published here.
 
-Manual Testing rehearsal and recording are the next evidence items. Their results must be recorded separately from ASI:One UI completion and public shared-chat availability, which remain pending recovery. The stable source and 74-test verification are unchanged by this documentation update.
+The Manual Testing rehearsal subsequently completed; its result is recorded below. The video is being prepared separately. ASI:One UI completion and public shared-chat availability remain pending recovery. The stable source and 74-test verification are unchanged by these documentation updates.
+
+## Completed native Agentverse Manual Testing rehearsal
+
+Synthetic incident **ER-3CC6223A** closed at **17:55:05 IST** after native category/location form submission, actual hospitality-agent Arun-decline/Neha-accept decisions, native Start/Done, awaiting confirmation, native Still a problem, same-ID reopening/reacceptance, repeated Start/Done, and native Yes, resolved. The presenter never clicked Accept. The same reporter identity/session and issue history persisted throughout. [Sanitized record](MANUAL_TESTING_PROOF.md)
+
+This verifies the tested Agentverse UI form/card callbacks and complete hosted lifecycle through the organizer-recommended alternative. AI-unavailable form entry was manual guidance; crew decisions and physical work were synthetic. It does not establish ASI:One web completion, public shared-chat availability, or real-world repair.

@@ -11,6 +11,8 @@ EventRelay coordinates event-day problems across independent vendor teams. A fam
 
 **Verified status, 24 October 2026:** all five hosted agents started and registered. Actual hosted rehearsals closed synthetic water, audio, power, and cleanup incidents by **16:25:07 IST**. Water included primary decline and backup acceptance; audio included same-issue reopening and reacceptance. A live natural-language status query returned the stored closed water issue. Staff decisions, physical work, and reporter actions were explicitly synthetic. [Live hosted workflow proof](docs/LIVE_WORKFLOW_PROOF.md)
 
+**Native Manual Testing workflow completed at 17:55:05 IST:** incident **ER-3CC6223A** passed through the guided category/location form, automatic vendor decline/backup acceptance, native Start/Done, awaiting confirmation, native reopening under the same ID, reacceptance, and native reporter-confirmed closure. The presenter never clicked Accept. [Sanitized Manual Testing proof](docs/MANUAL_TESTING_PROOF.md)
+
 The complete **ASI:One user-interface workflow remains unverified**. Earlier frontend 503/504 errors affected follow-up testing. The later natural-language status probe succeeded through the hosted coordinator, but a complete natural-language report/clarification flow and public ASI:One shared-chat demonstration still need separate proof.
 
 The latest code uses the documented OpenAI-compatible SDK client for ASI1 and provides a clearly labelled **manual guided form inside ASI:One** when ASI1 is unavailable. This recovery requires the user to supply the category and location; it does not claim successful AI reasoning. Live rendering of that recovery form remains unverified.
@@ -94,7 +96,7 @@ Measure time to an accepted owner, time an issue remains unowned, manual follow-
 
 ## Review and submission status
 
-Code and passing local/CI tests are available. Hosted rehearsals verified all five roles, closure across four categories, same-ID audio reopening, and one natural-language status lookup. The complete ASI:One user-interface workflow, full natural-language report/clarification flow, public shared chat, and demo video remain unverified. The live proof uses explicitly synthetic staff and reporter actions.
+Code and passing local/CI tests are available. Hosted rehearsals verified all five roles, closure across four categories, same-ID audio reopening, and one natural-language status lookup. A complete Agentverse Manual Testing workflow also verified native form/card callbacks, automatic vendor acceptance, same-ID reopening, and reporter-confirmed closure. The complete ASI:One user-interface workflow, full natural-language report/clarification flow, and public shared chat remain unverified. The video is being prepared separately. All live proof uses explicitly synthetic staff and reporter actions.
 
 The bundled event is synthetic. Real deployments require event-specific staff identities and responsibility mappings. Automatic demo responses are explicitly labelled; production mode requires authenticated staff responses. No WhatsApp, phone, or real-world repair integration is claimed.
 

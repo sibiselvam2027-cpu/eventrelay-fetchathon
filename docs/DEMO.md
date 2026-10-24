@@ -2,6 +2,8 @@
 
 **Organizer-recommended alternative:** an announcement supplied to the team reports ASI:One downtime, extends submission to **11:59 PM IST, 24 October 2026**, and recommends Agentverse **Agent Profile → Testing → Manual Testing**. For a recording made there, say **“This is Agentverse Manual Testing, as recommended in the organizer announcement. Our five agents are hosted; people and physical work in this event are synthetic.”** Keep the actual protocol responses, issue ID, accepted owner, and confirmation state visible. Do not label this an ASI:One frontend/shared-chat demonstration. The main script below describes the intended ASI:One workflow and can be used there after recovery; only narrate operations actually performed in either route.
 
+**Completed rehearsal:** at **17:55:05 IST**, Manual Testing incident **ER-3CC6223A** completed the native guided form → actual vendor Arun-decline/Neha-accept → native Start/Done → awaiting confirmation → native Still a problem → same-ID reacceptance → Start/Done → native Yes, resolved → Closed sequence. The presenter never clicked Accept. Use this actual captured sequence for the video; label AI-unavailable form entry as manual guidance and physical work as simulated. [Sanitized proof](MANUAL_TESTING_PROOF.md). ASI:One web/shared-chat evidence remains pending recovery.
+
 ## Preparation
 
 - All five **Agentverse Hosted Agents** have participated in synthetic hosted rehearsals; persistence, four-category closure, water backup routing, and audio same-ID reopening have been observed. [Evidence](LIVE_WORKFLOW_PROOF.md). The complete ASI:One UI flow, discoverability, and recording still need separate verification.

@@ -22,7 +22,7 @@ The intended executable outcome is a persistent issue record with an accountable
 | Direct agent entry | [EventRelay Coordinator in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu) |
 | Public shared chat proving the complete workflow | **Pending.** The direct entry link above is not a shared-chat URL. |
 | Demonstration video | **Pending.** Target length: 3–5 minutes; use [DEMO.md](DEMO.md). |
-| Organizer-recommended alternative | Agentverse **Agent Profile → Testing → Manual Testing**, per the announcement supplied to the team; recording and result verification pending |
+| Organizer-recommended alternative | **Completed:** Agentverse Manual Testing incident ER-3CC6223A verified native form/card callbacks, automatic vendor decline/acceptance, same-ID reopening and reporter-confirmed closure at 17:55:05 IST. [Sanitized proof](MANUAL_TESTING_PROOF.md). Video preparation is separate. |
 | Hosted agent addresses and profiles | [LIVE_DEPLOYMENT.md](LIVE_DEPLOYMENT.md); logged-out access remains a separate check |
 | Synthetic live hosted workflow proof | [LIVE_WORKFLOW_PROOF.md](LIVE_WORKFLOW_PROOF.md): four categories closed, same-ID audio reopening, water backup routing, and one natural-language status lookup; full ASI:One UI still pending |
 | Business assumptions | [BUSINESS_MODEL.md](BUSINESS_MODEL.md) |

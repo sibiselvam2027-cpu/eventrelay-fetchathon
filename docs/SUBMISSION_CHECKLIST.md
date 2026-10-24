@@ -62,11 +62,11 @@ Keep demonstration people, configured responses, accelerated timers, and simulat
 ## Organizer-recommended Manual Testing demonstration
 
 - [x] Record the supplied organizer announcement's deadline extension and recommended testing route without publishing its screenshot or private contact details.
-- [ ] Open the hosted coordinator's Agentverse profile, then **Testing → Manual Testing**.
-- [ ] Exercise the actual exposed chat protocol and capture agent responses through report/clarification, vendor offer/acceptance, progress, awaiting confirmation, and reporter confirmation or reopening.
-- [ ] Keep issue IDs and actual state transitions visible. Label staff decisions and physical work as synthetic; distinguish a delivery acknowledgment from acceptance.
+- [x] Open the hosted coordinator's Agentverse profile, then **Testing → Manual Testing**.
+- [x] Complete the exposed chat protocol and native form/card callbacks through guided category/location entry, actual vendor decline/backup acceptance, progress, awaiting confirmation, same-ID reopening, and reporter-confirmed closure. Incident **ER-3CC6223A**, completed **17:55:05 IST**. [Sanitized proof](MANUAL_TESTING_PROOF.md)
+- [x] Keep the same issue and reporter session throughout; staff decisions and physical work are synthetic. The presenter never clicked Accept; the actual hospitality agent supplied its configured decisions.
 - [ ] Record a **3–5 minute video** of the tested alternative and the observed hosted result, using [DEMO.md](DEMO.md).
-- [ ] Label this evidence **Agentverse Manual Testing**. Leave ASI:One UI completion and public shared-chat evidence pending until independently demonstrated after recovery.
+- [x] Label this rehearsal **Agentverse Manual Testing**. ASI:One UI completion and public shared-chat evidence remain pending recovery.
 - [ ] Follow any further organizer submission instructions and retain the final receipt. A recommendation to use Manual Testing does not by itself prove that every original deliverable was waived.
 
 ## Submission packet — pending
