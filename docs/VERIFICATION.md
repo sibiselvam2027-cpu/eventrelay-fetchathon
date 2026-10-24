@@ -1,6 +1,6 @@
 # Verification record
 
-**Current published source baseline: 74 tests passed locally and in [GitHub Actions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40089811983), source commit `c5f0c8d5882f01b055f8b52337a638c8d109d243`.** Hosted builds/compilation and the synthetic scenario also passed. Actual hosted rehearsals closed four synthetic service categories and exercised same-ID reopening plus one natural-language status lookup. Full ASI:One UI completion remains pending. The entries below preserve the verification history and its limits.
+**Current published source baseline: 81 tests passed locally and in [GitHub Actions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40095406290), source commit `cdb6a99a68d4e2322e2ba9a10d8630c642ad3680`.** Hosted builds/compilation and the synthetic scenario also passed. Actual hosted rehearsals closed four synthetic service categories; native Manual Testing completed reopening and confirmation. ASI:One web help, persistent status, and native Start were subsequently observed, while the complete web sequence remains pending. The entries below preserve the verification history and its limits.
 
 Local verification on 24 October 2026 used Python 3.12.14, uAgents 0.25.5, uAgents Core 0.4.12 and Pydantic 2.14.1.
 
@@ -67,3 +67,11 @@ The Manual Testing rehearsal subsequently completed; its result is recorded belo
 Synthetic incident **ER-3CC6223A** closed at **17:55:05 IST** after native category/location form submission, actual hospitality-agent Arun-decline/Neha-accept decisions, native Start/Done, awaiting confirmation, native Still a problem, same-ID reopening/reacceptance, repeated Start/Done, and native Yes, resolved. The presenter never clicked Accept. The same reporter identity/session and issue history persisted throughout. [Sanitized record](MANUAL_TESTING_PROOF.md)
 
 This verifies the tested Agentverse UI form/card callbacks and complete hosted lifecycle through the organizer-recommended alternative. AI-unavailable form entry was manual guidance; crew decisions and physical work were synthetic. It does not establish ASI:One web completion, public shared-chat availability, or real-world repair.
+
+## ASI:One leading routing mention and partial web rehearsal
+
+Actual ASI:One messages included a leading `@<coordinator-address>` before commands and native callback JSON. The fix removes only a complete leading mention matching the runtime agent identity before JSON/command parsing. Foreign mentions, mentions inside prose or JSON, and sender-derived authority remain intact. Narrow regressions also cover documented `done ER-ID: evidence` and `reopen ER-ID: details` commands. ASI-unavailability logs contain only application-authored safe reasons, not upstream bodies, headers, credentials, or user text.
+
+The final source passed **81 tests locally and in [CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40095406290)**, with all five hosted builds/compilation and the synthetic scenario. Local verification ran in 4.12 seconds.
+
+At approximately **18:15 IST**, the deployed coordinator returned correct help through ASI:One, retrieved persistent incident **ER-69FE87CB** after a restart, and processed a native Start action returning **in progress**. These are partial web results. The full ASI:One completion/reopening/confirmation sequence, full natural-language report/clarification path, and public shared-chat evidence remain pending; no successful complete web workflow is inferred from a single button.

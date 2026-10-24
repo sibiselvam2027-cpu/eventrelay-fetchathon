@@ -5,7 +5,7 @@
 ## Verified code evidence
 
 - [x] Public repository: [sibiselvam2027-cpu/eventrelay-fetchathon](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon).
-- [x] CI-verified final source: `c5f0c8d5882f01b055f8b52337a638c8d109d243`.
+- [x] CI-verified current source: `cdb6a99a68d4e2322e2ba9a10d8630c642ad3680`.
 - [x] Initial local verification: **65 tests passed** before publication.
 - [x] Published source fixes: **68 tests passed locally and in CI**.
 - [x] SDK-client/guided-recovery source: **69 local and CI tests passed**; all five hosted projects rebuilt and compiled.
@@ -13,6 +13,7 @@
 - [x] CI job logs confirm the 70-test baseline; hosted-project build/compile and synthetic-workflow checks also passed. [CI job](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086612325/job/120850745755)
 - [x] CRLF normalization and stored-route migration source: **73 local and CI tests — OK**. [Verified CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40087069509)
 - [x] Final envelope-lifetime and safe-diagnostic revision: **74 local and CI tests — OK**; five hosted builds/compilation and the synthetic scenario passed. [Final source CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40089811983)
+- [x] Own-routing-mention/native-JSON and colon-command regressions: **81 local and CI tests — OK**; five hosted builds/compilation and the synthetic scenario passed. [Current source CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40095406290)
 
 The configuration/migration changes have passed CI. Local or CI success does not complete the live ASI:One UI evidence items below.
 
@@ -45,6 +46,8 @@ The latest source offers an explicitly labelled manual guided form inside ASI:On
 Earlier temporary observer tests confirmed report dispatch but received no callbacks before stopping; those tests alone establish no acceptance or closure. Later hosted rehearsals supplied the positive four-category evidence below. Diagnostic agents are not submitted product roles.
 
 ## Complete ASI:One proof — pending
+
+**Partial web progress, approximately 18:15 IST:** the room opens, correct coordinator help replies, persistent issue ER-69FE87CB is retrievable after restart, and native Start returns in progress. Full completion/reopening/reporter-confirmation testing and the public shared chat remain pending.
 
 **Separate verified results:** hosted water, audio, power, and cleanup incidents reached closure by 16:25:07 IST. Water used primary decline/backup acceptance; audio reopened and reaccepted under the same ID. One natural-language status lookup succeeded. Vendor decisions and physical/reporter actions were explicitly synthetic. [Evidence](LIVE_WORKFLOW_PROOF.md). The ASI:One UI checklist below remains pending because these rehearsals did not use the complete frontend workflow.
 

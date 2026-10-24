@@ -21,6 +21,7 @@ The intended executable outcome is a persistent issue record with an accountable
 | Public code and run/test instructions | [GitHub repository](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) |
 | Direct agent entry | [EventRelay Coordinator in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu) |
 | Public shared chat proving the complete workflow | **Pending.** The direct entry link above is not a shared-chat URL. |
+| ASI:One web rehearsal | **Partial:** correct help, persistent status after restart, and native Start → in progress observed around 18:15 IST. Complete web completion/reopening/confirmation and full natural-language report/clarification remain pending. |
 | Demonstration video | **Ready locally:** `EventRelay-demo.mp4`, **4:27.17**, narrated edited walkthrough of actual Agentverse Manual Testing screenshots; **not a continuous live recording**. Audio/video decoding and visual contact-sheet checks passed. **Public video URL pending.** Separate script: `EventRelay-narration.txt`. |
 | Organizer-recommended alternative | **Completed:** Agentverse Manual Testing incident ER-3CC6223A verified native form/card callbacks, automatic vendor decline/acceptance, same-ID reopening and reporter-confirmed closure at 17:55:05 IST. [Sanitized proof](MANUAL_TESTING_PROOF.md). The underlying callbacks are genuine; crew decisions and physical work are synthetic. |
 | Hosted agent addresses and profiles | [LIVE_DEPLOYMENT.md](LIVE_DEPLOYMENT.md); logged-out access remains a separate check |
