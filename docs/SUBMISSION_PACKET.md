@@ -14,7 +14,7 @@ EventRelay helps event planners, venues, and family coordinators handle problems
 |---|---|
 | Public ASI:One workflow | [Verified shared-chat viewer](https://asi1.ai/shared-chat/69fc8518-55f8-4b17-bd88-59988ba627f7) |
 | GitHub | [Public source, setup and test instructions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) |
-| PowerPoint | [Product and agent use-case deck](EventRelay-pitch.pptx) |
+| PowerPoint | [Eight-slide product and agent use-case deck](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/raw/refs/heads/main/docs/EventRelay-pitch.pptx) |
 | Coordinator entry | [Start your own ASI:One test](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu) |
 | How to test | [QUICK_DEMO.md](QUICK_DEMO.md) |
 | Full web proof | [ER-4DE240CA, closed about 18:44 IST](ASI_WEB_PROOF.md) |
@@ -40,7 +40,7 @@ The [Fetch-A-Thon dashboard](https://asi1.ai/festival/fetchathon3/dashboard?utm_
 
 The registered Team ID and Masters’ Union Gurugram location were validated. The agent reported three expected members and no existing project submission. The live form requires **Team Name, Project Name, Project Description, Your Name, Your Email, and PPT URL**. It labels GitHub URL and Video Demo URL optional.
 
-The team chose its registered Team ID as the team name. The actual ID, member details, email addresses, and private draft-chat identifiers are intentionally excluded from this public packet. The private form has the known project and contact details prepared. **Submit project has not been pressed.**
+The team chose its registered Team ID as the team name. The actual ID, member details, email addresses, and private draft-chat identifiers are intentionally excluded from this public packet. The private form has the known project and contact details and the published PPT URL filled in. The video field remains blank for the team. **Submit project has not been pressed.**
 
 The public [hackpack](https://www.fetch.ai/events/hackathons/fetch-a-thon-3/hackpack) still lists GitHub, a public ASI:One shared chat, Agentverse profiles, a short video, and a brief problem/users/outcome description. It does not list a PPT deliverable. Include the required links from the hackpack even where the live form labels them optional. The requested PPT addresses the live form requirement; its preparation does not establish a waiver of the team video.
 

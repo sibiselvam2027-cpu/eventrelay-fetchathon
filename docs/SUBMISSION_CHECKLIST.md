@@ -31,7 +31,7 @@ The live official form additionally marks **PPT URL required**. The user request
 
 - [x] Open the official dashboard and Project Submission agent.
 - [x] Validate the registered Team ID/location and prepare known project/contact fields in the private form.
-- [ ] Add the final public PPT URL to the private form after its publication.
+- [x] Add the published public PPT URL to the private form. The form is prepared in the current browser tab; Submit project remains untouched.
 - [ ] Team adds its video URL and completes the final review.
 - [ ] Press Submit project through the official agent when the reviewed packet is ready.
 - [ ] Retain the final submission acknowledgment. **No final submission or receipt is claimed.**
