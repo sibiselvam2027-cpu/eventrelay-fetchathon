@@ -2,6 +2,8 @@
 
 Verified on **24 October 2026 at approximately 15:38 IST (10:08 UTC)** using `avctl hosting logs` against each deployed address. These are Agentverse-hosted deployments. They do not depend on a running local mailbox agent or a custom frontend.
 
+**Later positive rehearsal:** at 16:16:19 IST, actual hosted coordinator/hospitality exchanges took synthetic drinking-water issue ER-A50BFBB4 through primary decline, backup acceptance, progress, completion, and reporter-confirmed closure. The diagnostic observer did not supply the acceptance. See [the sanitized live workflow proof](LIVE_WORKFLOW_PROOF.md). ASI:One UI and LLM extraction are not established by that structured-message test.
+
 ## Hosted agents
 
 | Agent | Latest successful start, IST | Agentverse profile |

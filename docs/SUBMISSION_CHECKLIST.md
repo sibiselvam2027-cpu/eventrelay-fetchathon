@@ -5,15 +5,15 @@
 ## Verified code evidence
 
 - [x] Public repository: [sibiselvam2027-cpu/eventrelay-fetchathon](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon).
-- [x] CI-verified baseline: `caeef649b7c63f3c2609dc43d4a2fae603dd8f0b`.
+- [x] CI-verified source: `8896fbb2dc0f934e593f509752859912437471f0`.
 - [x] Initial local verification: **65 tests passed** before publication.
 - [x] Published source fixes: **68 tests passed locally and in CI**.
 - [x] SDK-client/guided-recovery source: **69 local and CI tests passed**; all five hosted projects rebuilt and compiled.
 - [x] Additional timeout-recovery regression: **70 tests passed in CI**. [Verify EventRelay](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086612325)
 - [x] CI job logs confirm the 70-test baseline; hosted-project build/compile and synthetic-workflow checks also passed. [CI job](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086612325/job/120850745755)
-- [x] Current CRLF normalization and stored-route migration revision: **73 local tests — OK**. New CI must be checked against its published commit.
+- [x] CRLF normalization and stored-route migration source: **73 local and CI tests — OK**. [Verified CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40087069509)
 
-The configuration/migration changes require their own published CI result. Local or CI success does not complete the live ASI:One evidence items below.
+The configuration/migration changes have passed CI. Local or CI success does not complete the live ASI:One UI evidence items below.
 
 ## Live hosted deployment
 
@@ -44,6 +44,8 @@ The latest source offers an explicitly labelled manual guided form inside ASI:On
 Temporary observer tests confirmed report dispatch but did not receive response callbacks before stopping. They provide no live acceptance, closure, or end-to-end proof. The disposable observer and failed-deployment orphan were cleaned up; diagnostic agents are not submitted product roles.
 
 ## Complete ASI:One proof — pending
+
+**Separate verified result:** a structured-message live hosted coordinator/hospitality rehearsal reached closure at 16:16:19 IST, with actual vendor-agent decline/acceptance and explicitly synthetic physical/reporter actions. [Evidence](LIVE_WORKFLOW_PROOF.md). The ASI:One UI checklist below remains pending because that rehearsal did not use the full frontend workflow.
 
 - [ ] Report an ambiguous water issue; clarify it before dispatch.
 - [ ] Show that an offered task has no accepted owner yet.
