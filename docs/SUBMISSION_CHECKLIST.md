@@ -5,15 +5,15 @@
 ## Verified code evidence
 
 - [x] Public repository: [sibiselvam2027-cpu/eventrelay-fetchathon](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon).
-- [x] Latest CI-verified published commit: `532a5a7f1746d8408adff23f06ba42f01fafb124`.
+- [x] CI-verified baseline: `caeef649b7c63f3c2609dc43d4a2fae603dd8f0b`.
 - [x] Initial local verification: **65 tests passed** before publication.
 - [x] Published source fixes: **68 tests passed locally and in CI**.
 - [x] SDK-client/guided-recovery source: **69 local and CI tests passed**; all five hosted projects rebuilt and compiled.
-- [x] Additional timeout-recovery regression: current full local suite **70 tests — OK**. The new revision needs its own CI result.
-- [x] GitHub Actions passed for that exact commit: [Verify EventRelay](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086061325).
-- [x] Its CI job passed workflow/persistence checks, hosted-project build/compile, and the complete synthetic scenario. [CI job](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086061325/job/120849135298)
+- [x] Additional timeout-recovery regression: **70 tests passed in CI**. [Verify EventRelay](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086612325)
+- [x] CI job logs confirm the 70-test baseline; hosted-project build/compile and synthetic-workflow checks also passed. [CI job](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086612325/job/120850745755)
+- [x] Current CRLF normalization and stored-route migration revision: **73 local tests — OK**. New CI must be checked against its published commit.
 
-The bounded-wait source has passed CI. The subsequent 70th regression test and current documentation revision require their own CI result.
+The configuration/migration changes require their own published CI result. Local or CI success does not complete the live ASI:One evidence items below.
 
 ## Live hosted deployment
 

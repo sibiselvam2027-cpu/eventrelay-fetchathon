@@ -111,7 +111,7 @@ def extract_intent(text: str, event_context: dict | str | None = None,
         raise ASIError("The event context could not be interpreted.") from None
     if len(user) > 24_000:
         raise ASIError("The event context is too large. Please use a shorter report.")
-    payload = {"model": os.environ.get("ASI1_MODEL", "asi1"),
+    payload = {"model": os.environ.get("ASI1_MODEL", "asi1").strip() or "asi1",
                "messages": [{"role": "system", "content": _SYSTEM},
                             {"role": "user", "content": user}],
                "temperature": 0, "max_tokens": 650}

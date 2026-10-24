@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 from uagents_core.contrib.protocols.chat import ChatMessage, TextContent
 from eventrelay.fetch_agents import IssueOffer, VendorDecision
-from eventrelay.hosted_runtime import HostedTransport, TRANSPORT_KEY, attach
+from eventrelay.hosted_runtime import HostedTransport, TRANSPORT_KEY, attach, _send
 from eventrelay.hosted_state import open_hosted_service
 from eventrelay.asi import ASIError
 from eventrelay.fetch_agents import _actor
@@ -46,8 +46,10 @@ class HostContext:
         self.session = session
         self.logger = Mock()
         self.sent = []
+        self.network_timeouts = []
 
-    async def send(self, recipient, message):
+    async def send(self, recipient, message, timeout=30):
+        self.network_timeouts.append(timeout)
         if isinstance(message, IssueOffer):
             # Checkpoint must already be durable when an offer leaves the agent.
             session = open_hosted_service(self.storage)
@@ -114,7 +116,22 @@ class HostedRuntimeTests(unittest.TestCase):
                 for function in protocol.signed_message_handlers.values():
                     self.assertIsInstance(function.__annotations__["msg"], type)
 
+    def test_network_transport_receives_the_explicit_sdk_timeouts(self):
+        ctx = HostContext(MemoryStorage())
+        message = ChatMessage(content=[TextContent(type="text", text="Timeout test")])
+        self.assertTrue(immediate(_send(ctx, "recipient", message, timeout=2.0)))
+        self.assertTrue(immediate(_send(ctx, "recipient", message, timeout=4.0)))
+        self.assertEqual([2, 4], ctx.network_timeouts)
+
     def test_hosted_report_decline_backup_and_accept_survive_new_invocations(self):
+        self._hosted_report_to_closure()
+
+    def test_crlf_config_still_routes_decline_backup_accept_and_closure(self):
+        contaminated = {key: value + "\r\n" for key, value in self.settings.items()}
+        with patch.dict(os.environ, contaminated):
+            self._hosted_report_to_closure()
+
+    def _hosted_report_to_closure(self):
         coordinator_storage, hospitality_storage = MemoryStorage(), MemoryStorage()
         coordinator = self.agent("coordinator")
         report = ChatMessage(content=[TextContent(type="text", text=json.dumps({
@@ -201,6 +218,26 @@ class HostedRuntimeTests(unittest.TestCase):
         self.assertEqual(transport.state["origins"]["i1"]["recipient"], "reporter_sender")
         self.assertFalse(transport.claim([offer], now=101))
         self.assertEqual(len(transport.claim([offer], now=106)), 1)
+
+    def test_existing_crlf_outbox_is_migrated_without_resetting_the_issue(self):
+        storage = MemoryStorage()
+        offer = IssueOffer(offer_id="existing_offer", issue_id="existing_issue", staff_id="staff_neha",
+                           category="drinking_water", summary="Existing urgent report", location="Dining Hall",
+                           version=7, vendor_group="hospitality").dict()
+        response = {"issue": {"issue_id": "existing_issue", "reporter_id": "reporter_1"}, "offers": [offer]}
+        transport = HostedTransport(storage)
+        transport.capture(response, "reporter_1", "original_reporter\r", "session_1",
+                          {"hospitality": "agent_hospitality\r\n"})
+        transport.save()
+        restored = HostedTransport(storage)
+        restored.capture(response, "staff_neha", "different_staff", "session_2",
+                         {"hospitality": "agent_hospitality"})
+        outgoing = restored.claim([offer], now=100)
+        self.assertEqual("agent_hospitality", outgoing[0][0])
+        self.assertEqual("existing_issue", outgoing[0][1].issue_id)
+        self.assertEqual(7, outgoing[0][1].version)
+        self.assertEqual("original_reporter", restored.state["origins"]["existing_issue"]["recipient"])
+        self.assertFalse(restored.state["offers"]["existing_offer"]["processed"])
 
     def test_unexpected_vendor_reply_never_loads_domain_state(self):
         ctx = HostContext(MemoryStorage())

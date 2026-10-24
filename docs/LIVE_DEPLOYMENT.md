@@ -48,4 +48,8 @@ Three test-report dispatches were confirmed at approximately 15:52:10, 15:53:49,
 
 The observer and a failed-deployment orphan were then removed after exact-ID verification. At that cleanup check, the account inventory contained the five compiled/running EventRelay product agents. Separate diagnostic control agents are not submitted product roles.
 
+## Subsequent configuration fix under verification
+
+Peer-dispatch logs contained a trailing carriage-return character in configured public addresses. The source now normalizes that formatting and migrates stored peer routes without clearing existing issues. Local regressions, including the contaminated-configuration lifecycle, pass as part of the 73-test suite. New deployment, live callback delivery, natural-language reasoning, and the complete ASI:One workflow remain separate verification steps. An independent minimal control agent also encountered ASI frontend chat-start failures during diagnosis.
+
 The supplied event, crew identities, staff decisions, and physical work remain explicitly labelled demonstration data. Hosted agent execution and inter-agent messages are separate from any claim that real event staff were contacted or physical work occurred.

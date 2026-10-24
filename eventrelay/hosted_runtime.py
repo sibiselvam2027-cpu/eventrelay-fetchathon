@@ -36,7 +36,11 @@ TRANSPORT_KEY = "eventrelay.transport.v1"
 def _setting(ctx, name, default=""):
     secrets = getattr(ctx, "secrets", None)
     value = secrets.get(name) if secrets is not None and hasattr(secrets, "get") else None
-    return value if value is not None else os.environ.get(name, default)
+    value = value if value is not None else os.environ.get(name, default)
+    # AVCTL/.env values may retain Windows CRLF terminators. These are config
+    # boundaries, not user report text: a trailing CR corrupts agent addresses,
+    # exact mode checks and model names even though logs look visually normal.
+    return value.strip() if isinstance(value, str) else value
 
 
 def _prepare(ctx):
@@ -57,8 +61,8 @@ def _mapping(ctx, name):
 
 
 def _addresses(ctx, agent, role):
-    values = {name: str(_setting(ctx, f"EVENTRELAY_{name.upper()}_ADDRESS")) for name in ROLES}
-    values[role] = agent.address
+    values = {name: str(_setting(ctx, f"EVENTRELAY_{name.upper()}_ADDRESS")).strip() for name in ROLES}
+    values[role] = agent.address.strip()
     return values
 
 
@@ -71,6 +75,16 @@ class HostedTransport:
         self.state = json.loads(raw) if isinstance(raw, str) else json.loads(json.dumps(raw or {}))
         for key in ("origins", "offers", "inbox"):
             self.state.setdefault(key, {})
+        # Migrate only formatting around persisted public peer addresses. Old
+        # Windows .env secrets could already have written a trailing CR into
+        # the outbox; preserve every issue, offer, version and processing flag.
+        for row in self.state["offers"].values():
+            for field in ("expected_sender", "recipient"):
+                if isinstance(row.get(field), str):
+                    row[field] = row[field].strip()
+        for origin in self.state["origins"].values():
+            if isinstance(origin.get("recipient"), str):
+                origin["recipient"] = origin["recipient"].strip()
 
     def save(self):
         self.storage.set(TRANSPORT_KEY, self.state)
@@ -156,7 +170,9 @@ async def _with_timeout(awaitable, timeout):
 
 async def _send(ctx, recipient, message, timeout=4.0):
     try:
-        await _with_timeout(ctx.send(recipient, message), timeout)
+        # Also bound the SDK/host transport itself. An outer asyncio deadline
+        # alone cannot interrupt a blocking host RPC or resolver implementation.
+        await _with_timeout(ctx.send(recipient, message, timeout=max(1, int(timeout))), timeout)
         return True
     except asyncio.TimeoutError:
         ctx.logger.warning("Hosted message delivery exceeded its time budget; persisted offers can retry.")

@@ -29,3 +29,9 @@ Bounded-wait commit `532a5a7f1746d8408adff23f06ba42f01fafb124` also passed [CI](
 Agentverse confirmed dispatch of a natural-language report at approximately 15:52:10 IST and structured reports at 15:53:49 and 15:56:17. No response callbacks reached the temporary diagnostic observer before it stopped, and execution timeouts appeared in the retrieved logs. These observations do **not** establish live vendor acceptance, closure, or an ASI:One end-to-end workflow.
 
 The disposable observer and failed-deployment orphan were removed after exact-ID checks. The cleanup inventory contained the five product roles, compiled and running. Diagnostic agents are not part of EventRelay's five-agent architecture or submission. Later control tests and the native-form recovery must be assessed separately from that earlier negative result.
+
+## Windows configuration and persisted-route normalization
+
+Live logs exposed a concrete peer-dispatch fault: configuration values included trailing carriage-return characters from Windows CRLF environment files. The current revision strips public peer addresses and model/configuration values, emits generated environment files with LF endings, and normalizes previously persisted peer routes without resetting the existing event or issue records. A full contaminated-configuration regression covers report, decline, backup acceptance, completion, and confirmation; another regression preserves an existing issue version and its original reporter route during migration.
+
+The full current local suite passed **73 tests**. New CI must be checked for the newly published revision. These regressions establish the tested code behavior, not a completed live ASI:One demonstration. A separate minimal control agent also failed to start a chat while ASI frontend 503 errors were observed; that observation does not establish EventRelay's live acceptance or closure.

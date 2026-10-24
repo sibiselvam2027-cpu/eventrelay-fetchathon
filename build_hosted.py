@@ -44,11 +44,11 @@ def main():
             "[project]\n" + f'name = "eventrelay-{role}"\nversion = "0.1.0"\ndescription = "{DESCRIPTIONS[role]}"\n'
             'requires-python = ">=3.10,<3.14"\ndependencies = ["uagents==0.25.5", "uagents-core==0.4.12", "openai"]\n', encoding="utf-8")
         example = "# Agentverse injects ASI1_API_KEY and ASI1_BASE_URL; omit empty overrides.\nASI1_MODEL=asi1\nEVENTRELAY_DEMO_MODE=1\nEVENTRELAY_COORDINATOR_ADDRESS=\nEVENTRELAY_HOSPITALITY_ADDRESS=\nEVENTRELAY_AUDIO_ADDRESS=\nEVENTRELAY_FACILITIES_ADDRESS=\nEVENTRELAY_HOUSEKEEPING_ADDRESS=\nEVENTRELAY_ORGANIZER_SENDERS=\nEVENTRELAY_STAFF_SENDERS={}\nEVENTRELAY_DEMO_DECISIONS={\"staff_arun\":\"decline\",\"staff_neha\":\"accept\",\"staff_ravi\":\"accept\",\"staff_sara\":\"accept\",\"staff_vikram\":\"accept\",\"staff_pooja\":\"accept\",\"staff_meena\":\"accept\",\"staff_kiran\":\"accept\"}\n"
-        (target / ".env.example").write_text(example, encoding="utf-8")
+        (target / ".env.example").write_text(example, encoding="utf-8", newline="\n")
         # AVCTL needs a local configuration file. This contains placeholders only;
         # real values must be put into Agent Secrets and never committed.
         if not (target / ".env").exists():
-            (target / ".env").write_text(example, encoding="utf-8")
+            (target / ".env").write_text(example, encoding="utf-8", newline="\n")
         else:
             # Preserve private configured values, but never mask the platform's
             # injected hosted credentials with obsolete blank placeholders.
@@ -60,7 +60,7 @@ def main():
                 if separator and name.strip() in {"ASI1_API_KEY", "ASI1_BASE_URL"} and not value.strip():
                     continue
                 kept.append(line)
-            env_path.write_text("\n".join(kept) + "\n", encoding="utf-8")
+            env_path.write_text("\n".join(kept) + "\n", encoding="utf-8", newline="\n")
         (target / "README.md").write_text(
             f"# EventRelay {role.title()}\n\n{DESCRIPTIONS[role]}\n\n"
             "![tag:innovationlab](https://img.shields.io/badge/innovationlab-3D8BD3)\n"
