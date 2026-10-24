@@ -7,6 +7,8 @@ EventRelay coordinates event-day problems across independent vendor teams. A fam
 
 **[Try EventRelay in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu)** · [Public repository](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) · [74-test CI evidence](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40089811983)
 
+**Organizer update shared with the team, 24 October:** the announcement reports ASI:One downtime, extends the submission deadline to **11:59 PM IST today**, and recommends **Agent Profile → Testing → Manual Testing** in Agentverse for demonstrations. This records the supplied organizer announcement, not an independent service-wide availability measurement. See [the updated submission checklist](docs/SUBMISSION_CHECKLIST.md). The complete ASI:One UI workflow and public shared chat remain pending recovery; Manual Testing evidence will be labelled separately.
+
 **Verified status, 24 October 2026:** all five hosted agents started and registered. Actual hosted rehearsals closed synthetic water, audio, power, and cleanup incidents by **16:25:07 IST**. Water included primary decline and backup acceptance; audio included same-issue reopening and reacceptance. A live natural-language status query returned the stored closed water issue. Staff decisions, physical work, and reporter actions were explicitly synthetic. [Live hosted workflow proof](docs/LIVE_WORKFLOW_PROOF.md)
 
 The complete **ASI:One user-interface workflow remains unverified**. Earlier frontend 503/504 errors affected follow-up testing. The later natural-language status probe succeeded through the hosted coordinator, but a complete natural-language report/clarification flow and public ASI:One shared-chat demonstration still need separate proof.
@@ -17,7 +19,7 @@ The linked CI result verifies source commit `c5f0c8d5882f01b055f8b52337a638c8d10
 
 ## Architecture
 
-Five direct uAgents run as **Agentverse Hosted Agents**. **ASI:One is the only product interface**. Forms and status/confirmation cards are declared through ACP; there is no custom website, frontend, LangChain, MCP adapter, or separate database service.
+Five direct uAgents run as **Agentverse Hosted Agents**. **ASI:One is the intended product interface**. Forms and status/confirmation cards are declared through ACP; there is no custom website, frontend, LangChain, MCP adapter, or separate database service. The organizer-recommended Agentverse Manual Testing panel is a demonstration/testing alternative during the reported ASI:One disruption, not an additional product frontend.
 
 ```mermaid
 flowchart TD

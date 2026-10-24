@@ -1,6 +1,6 @@
 # EventRelay — submission checklist
 
-**Updated internal target: demo-ready by 16:45 IST, with a 17:00 rehearsal, 24 October 2026, as requested.** This is not an organizer-confirmed submission cutoff. The official page lists a 16:30 final-building/submission session but does not state an exact cutoff; check the current event announcement or dashboard. This checklist separates verified code evidence from live deployment and submission evidence.
+**Updated deadline: 11:59 PM IST, 24 October 2026, according to the organizer announcement shared with the team.** That announcement reports ASI:One downtime and recommends **Agent Profile → Testing → Manual Testing** in Agentverse. This is a supplied organizer statement, not an independently measured platform-wide availability claim. Earlier 16:45/17:00 internal targets are superseded. Keep the original public hackpack requirements visible and distinguish the recommended alternative from completed ASI:One UI evidence.
 
 ## Verified code evidence
 
@@ -18,7 +18,7 @@ The configuration/migration changes have passed CI. Local or CI success does not
 
 ## Live hosted deployment
 
-All five roles must run as Agentverse Hosted Agents. ASI:One is the sole product interface. The implementation uses direct uAgents/ACP and typed messages, with persistent Agent Storage.
+All five roles must run as Agentverse Hosted Agents. ASI:One is the intended product interface. The implementation uses direct uAgents/ACP and typed messages, with persistent Agent Storage. Agentverse Manual Testing is the organizer-recommended demonstration/testing route during the reported disruption.
 
 | Hosted agent | Actual agent address | Public profile URL | Running and verified |
 |---|---|---|---|
@@ -58,6 +58,16 @@ Earlier temporary observer tests confirmed report dispatch but received no callb
 - [ ] Create and open the **public ASI:One shared-chat URL**: Pending.
 
 Keep demonstration people, configured responses, accelerated timers, and simulated physical work clearly labelled. A local test, protocol acknowledgment, or crew completion report is not proof of a real-world repair.
+
+## Organizer-recommended Manual Testing demonstration
+
+- [x] Record the supplied organizer announcement's deadline extension and recommended testing route without publishing its screenshot or private contact details.
+- [ ] Open the hosted coordinator's Agentverse profile, then **Testing → Manual Testing**.
+- [ ] Exercise the actual exposed chat protocol and capture agent responses through report/clarification, vendor offer/acceptance, progress, awaiting confirmation, and reporter confirmation or reopening.
+- [ ] Keep issue IDs and actual state transitions visible. Label staff decisions and physical work as synthetic; distinguish a delivery acknowledgment from acceptance.
+- [ ] Record a **3–5 minute video** of the tested alternative and the observed hosted result, using [DEMO.md](DEMO.md).
+- [ ] Label this evidence **Agentverse Manual Testing**. Leave ASI:One UI completion and public shared-chat evidence pending until independently demonstrated after recovery.
+- [ ] Follow any further organizer submission instructions and retain the final receipt. A recommendation to use Manual Testing does not by itself prove that every original deliverable was waived.
 
 ## Submission packet — pending
 

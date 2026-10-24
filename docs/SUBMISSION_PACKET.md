@@ -22,6 +22,7 @@ The intended executable outcome is a persistent issue record with an accountable
 | Direct agent entry | [EventRelay Coordinator in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu) |
 | Public shared chat proving the complete workflow | **Pending.** The direct entry link above is not a shared-chat URL. |
 | Demonstration video | **Pending.** Target length: 3–5 minutes; use [DEMO.md](DEMO.md). |
+| Organizer-recommended alternative | Agentverse **Agent Profile → Testing → Manual Testing**, per the announcement supplied to the team; recording and result verification pending |
 | Hosted agent addresses and profiles | [LIVE_DEPLOYMENT.md](LIVE_DEPLOYMENT.md); logged-out access remains a separate check |
 | Synthetic live hosted workflow proof | [LIVE_WORKFLOW_PROOF.md](LIVE_WORKFLOW_PROOF.md): four categories closed, same-ID audio reopening, water backup routing, and one natural-language status lookup; full ASI:One UI still pending |
 | Business assumptions | [BUSINESS_MODEL.md](BUSINESS_MODEL.md) |
@@ -34,6 +35,6 @@ The dashboard's exact current prompts could not be read through the public fetch
 
 ## Timing and final check
 
-The public schedule lists 16:30 IST for final building/submission, followed by 17:50 closing and 18:00 event end. It asks entrants to meet the announced deadline without publishing an explicit submission cutoff. The team's 16:45 demo target is therefore separate from the official deadline, which still needs confirmation from the current dashboard or organizer announcement.
+The public schedule lists 16:30 IST for final building/submission, followed by 17:50 closing and 18:00 event end. A later organizer announcement shared with the team extends submission to **11:59 PM IST on 24 October 2026**, reports ASI:One downtime, and recommends Agentverse **Agent Profile → Testing → Manual Testing**. The extension and guidance are attributed to that supplied announcement; its private screenshot/contact details are not republished. Manual Testing evidence must be identified as such, while full ASI:One UI/shared-chat evidence remains pending recovery. The recommendation is not treated as an undocumented waiver of all original deliverables.
 
 Before submitting, use [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) to distinguish passing code tests, hosted startup, ACP delivery, genuine agent replies, and the complete live workflow. No external messages or actual submission were performed while preparing this packet.

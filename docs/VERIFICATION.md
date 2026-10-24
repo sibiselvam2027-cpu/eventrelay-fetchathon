@@ -55,3 +55,9 @@ The plain-language request “show status of ER-A50BFBB4” returned the actual 
 The final source preserves the SDK's normal 30-second envelope lifetime while retaining independent local acknowledgment/final-send wait budgets of 2/4 seconds. A regression checks both values separately. Safe diagnostics record whether a key is present and a known model name or `[custom]`; no credential or arbitrary model-setting value is logged. **74 tests passed locally and in [CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40089811983)** for source commit `c5f0c8d5882f01b055f8b52337a638c8d109d243`; all five hosted builds/compilation and the synthetic scenario also passed. CI completed at approximately 16:55:33 IST.
 
 At the final frontend check, an ASI:One attempt still failed to start and another browser attempt remained loading. These are observed attempt failures, not a claim of a platform-wide outage. A completed public shared chat, 3–5 minute demo video, and actual competition submission are not yet available.
+
+## Later organizer announcement supplied to the team
+
+The team received an organizer announcement reporting ASI:One downtime, extending submission until **11:59 PM IST on 24 October 2026**, and recommending Agentverse **Agent Profile → Testing → Manual Testing** for demonstrations. This is recorded as a supplied organizer statement; it is not an independent service-wide status measurement. The screenshot, organizer identity, and private contact information are not published here.
+
+Manual Testing rehearsal and recording are the next evidence items. Their results must be recorded separately from ASI:One UI completion and public shared-chat availability, which remain pending recovery. The stable source and 74-test verification are unchanged by this documentation update.
