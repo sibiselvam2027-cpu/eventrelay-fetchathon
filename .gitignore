@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+data/*
+!data/.gitkeep
+*.log
+.avctl/
+.uagents/
+*.db
+*.db-*
+# Deployment copies are generated from the reviewed eventrelay/ source.
+hosted/*/*.py
+!hosted/*/agent.py

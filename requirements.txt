@@ -1,0 +1,5 @@
+# Verified runtime: Python 3.12.14.
+uagents==0.25.5
+uagents-core==0.4.12
+pydantic==2.14.1
+python-dotenv==1.2.4

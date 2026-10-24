@@ -1,0 +1,28 @@
+name: Verify EventRelay
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install pinned SDK
+        run: python -m pip install -r requirements.txt
+      - name: Verify behavior and hosted persistence
+        run: python -m unittest discover -s tests -v
+      - name: Build and compile all five hosted projects
+        run: |
+          python build_hosted.py
+          python -m compileall -q hosted
+      - name: Verify the complete synthetic workflow
+        run: python -m eventrelay.demo
