@@ -1,18 +1,19 @@
 # EventRelay — submission checklist
 
-**Working target: 16:00 IST, 24 October 2026, as requested.** This checklist separates verified code evidence from live deployment and submission evidence. Update it only when each check has actually succeeded.
+**Updated internal target: demo-ready by 16:45 IST, with a 17:00 rehearsal, 24 October 2026, as requested.** This is not an organizer-confirmed submission cutoff. The official page lists a 16:30 final-building/submission session but does not state an exact cutoff; check the current event announcement or dashboard. This checklist separates verified code evidence from live deployment and submission evidence.
 
 ## Verified code evidence
 
 - [x] Public repository: [sibiselvam2027-cpu/eventrelay-fetchathon](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon).
-- [x] Latest CI-verified published commit: `9822b8c309f4b0fd53ae3cbef96e88614f124932`.
+- [x] Latest CI-verified published commit: `532a5a7f1746d8408adff23f06ba42f01fafb124`.
 - [x] Initial local verification: **65 tests passed** before publication.
 - [x] Published source fixes: **68 tests passed locally and in CI**.
 - [x] SDK-client/guided-recovery source: **69 local and CI tests passed**; all five hosted projects rebuilt and compiled.
-- [x] GitHub Actions passed for that exact commit: [Verify EventRelay](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40085835961).
-- [x] CI job logs independently confirm **69 tests — OK**. The job also passed hosted-project build/compile and the complete synthetic-workflow checks. [CI job](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40085835961/job/120848461907)
+- [x] Additional timeout-recovery regression: current full local suite **70 tests — OK**. The new revision needs its own CI result.
+- [x] GitHub Actions passed for that exact commit: [Verify EventRelay](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086061325).
+- [x] Its CI job passed workflow/persistence checks, hosted-project build/compile, and the complete synthetic scenario. [CI job](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086061325/job/120849135298)
 
-The CI run completed at **15:55:36 IST on 24 October 2026**. A subsequent timeout-budget revision requires its own test and CI evidence.
+The bounded-wait source has passed CI. The subsequent 70th regression test and current documentation revision require their own CI result.
 
 ## Live hosted deployment
 
@@ -39,6 +40,8 @@ All five roles must run as Agentverse Hosted Agents. ASI:One is the sole product
 That reply reported ASI1 authentication failure. Natural-language routing, successful resolution of that error, and the complete live workflow remain pending. Follow-up observation also encountered ASI:One frontend 503/504 errors and stalled sends.
 
 The latest source offers an explicitly labelled manual guided form inside ASI:One when ASI1 is unavailable. It creates no issue or offer until the user submits the required details. Live form rendering and the final client revision must still be verified; this fallback is not evidence that the LLM authentication problem is fixed.
+
+Temporary observer tests confirmed report dispatch but did not receive response callbacks before stopping. They provide no live acceptance, closure, or end-to-end proof. The disposable observer and failed-deployment orphan were cleaned up; diagnostic agents are not submitted product roles.
 
 ## Complete ASI:One proof — pending
 

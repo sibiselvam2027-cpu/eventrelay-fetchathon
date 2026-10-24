@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import unittest
@@ -221,6 +222,7 @@ class HostedRuntimeTests(unittest.TestCase):
             session.checkpoint()
         finally:
             session.close()
+
         os.environ["ASI1_API_KEY"] = "unit-test-key"
         async def fail_ai(*args, **kwargs):
             raise ASIError("Authentication failed")
@@ -251,6 +253,30 @@ class HostedRuntimeTests(unittest.TestCase):
             self.assertEqual(1, len(issues))
             self.assertEqual("drinking_water", issues[0]["category"])
             self.assertEqual("Dining Hall", issues[0]["location"])
+        finally:
+            session.close()
+
+
+    def test_ack_and_llm_timeouts_still_return_manual_form_without_dispatch(self):
+        os.environ["ASI1_API_KEY"] = "unit-test-key"
+        observed = []
+        async def blocked_operations(awaitable, timeout):
+            observed.append(timeout)
+            if timeout in {2.0, 8.0}:
+                awaitable.close()
+                raise asyncio.TimeoutError
+            return await awaitable
+        storage = MemoryStorage()
+        ctx = HostContext(storage)
+        message = ChatMessage(content=[TextContent(type="text", text="The water bottles are empty in the Dining Hall")])
+        with patch("eventrelay.hosted_runtime._with_timeout", new=blocked_operations):
+            immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
+        self.assertEqual([2.0, 8.0, 4.0], observed)
+        self.assertFalse(any(isinstance(item, IssueOffer) for _, item in ctx.sent))
+        self.assertTrue(any(isinstance(item, ChatMessage) and "manual guided mode" in item.text() for _, item in ctx.sent))
+        session = open_hosted_service(storage)
+        try:
+            self.assertEqual([], session.store.list_issues("wedding-demo"))
         finally:
             session.close()
 

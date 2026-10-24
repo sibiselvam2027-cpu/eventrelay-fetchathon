@@ -21,3 +21,11 @@ At approximately 15:40 IST, ASI:One reached the coordinator and displayed its ac
 Hosted state uses one sequential coordinator writer. No distributed compare-and-swap guarantee is claimed for Agent Storage.
 
 Published SDK-client/guided-recovery commit `9822b8c309f4b0fd53ae3cbef96e88614f124932` passed **69 local tests and 69 tests in [GitHub Actions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40085835961)**, rebuilt all five hosted projects, and passed Python compilation. CI finished at 15:55:36 IST. It uses the OpenAI-compatible SDK client and includes an explicitly labelled manual guided-form recovery when ASI1 requests fail. Recovery creates no issue or offer until the user supplies the required details through ASI:One. Tests cover avoiding accidental reuse of an older pending report. This is availability recovery, not proof that ASI1 authentication or natural-language reasoning is fixed. Live recovery-form rendering remains pending, and later timeout-budget changes require separate verification.
+
+Bounded-wait commit `532a5a7f1746d8408adff23f06ba42f01fafb124` also passed [CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40086061325). A further regression verifies that acknowledgment and LLM timeouts still return only a manual form without creating an issue or offer. The current full local suite passed **70 tests**. CI for the newly published test revision must be checked separately.
+
+## Negative live observer result
+
+Agentverse confirmed dispatch of a natural-language report at approximately 15:52:10 IST and structured reports at 15:53:49 and 15:56:17. No response callbacks reached the temporary diagnostic observer before it stopped, and execution timeouts appeared in the retrieved logs. These observations do **not** establish live vendor acceptance, closure, or an ASI:One end-to-end workflow.
+
+The disposable observer and failed-deployment orphan were removed after exact-ID checks. The cleanup inventory contained the five product roles, compiled and running. Diagnostic agents are not part of EventRelay's five-agent architecture or submission. Later control tests and the native-form recovery must be assessed separately from that earlier negative result.

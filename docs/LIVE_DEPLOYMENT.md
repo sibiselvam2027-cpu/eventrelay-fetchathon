@@ -42,4 +42,10 @@ A successful complete ASI:One workflow, public shared-chat URL, logged-out profi
 
 The latest source adds manual guided-form recovery inside ASI:One when ASI1 fails. The form requires a user-supplied category and location before dispatch; it does not represent successful LLM reasoning. Its live rendering and the revised client remain pending verification.
 
+## Diagnostic observer result and cleanup
+
+Three test-report dispatches were confirmed at approximately 15:52:10, 15:53:49, and 15:56:17 IST, but no response callbacks reached the temporary observer before it stopped. Retrieved execution logs showed timeouts. No live worker acceptance, reporter-confirmed closure, or complete ASI:One workflow is claimed from those tests.
+
+The observer and a failed-deployment orphan were then removed after exact-ID verification. At that cleanup check, the account inventory contained the five compiled/running EventRelay product agents. Separate diagnostic control agents are not submitted product roles.
+
 The supplied event, crew identities, staff decisions, and physical work remain explicitly labelled demonstration data. Hosted agent execution and inter-agent messages are separate from any claim that real event staff were contacted or physical work occurred.
