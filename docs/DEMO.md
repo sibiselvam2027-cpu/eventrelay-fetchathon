@@ -2,7 +2,7 @@
 
 ## Preparation
 
-- Deploy and verify all five agents as **Agentverse Hosted Agents** before recording. Hosted code, persistence, deployment, and discoverability are pending until that verification is complete.
+- All five **Agentverse Hosted Agents** have participated in synthetic hosted rehearsals; persistence, four-category closure, water backup routing, and audio same-ID reopening have been observed. [Evidence](LIVE_WORKFLOW_PROOF.md). The complete ASI:One UI flow, discoverability, and recording still need separate verification.
 - Use the synthetic wedding roster. Begin with no open drinking-water incident.
 - Keep every user-facing step in ASI:One. Use supported native staff cards or an authenticated staff conversation to perform crew actions. Do not substitute a custom webpage or local console for the judged workflow.
 - The five agents are the coordinator plus hospitality, audio, facilities, and housekeeping. For the main story, the coordinator exchanges offers and responses with the hospitality agent; the other agents remain available for their own categories.

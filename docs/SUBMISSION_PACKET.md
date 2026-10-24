@@ -23,6 +23,7 @@ The intended executable outcome is a persistent issue record with an accountable
 | Public shared chat proving the complete workflow | **Pending.** The direct entry link above is not a shared-chat URL. |
 | Demonstration video | **Pending.** Target length: 3–5 minutes; use [DEMO.md](DEMO.md). |
 | Hosted agent addresses and profiles | [LIVE_DEPLOYMENT.md](LIVE_DEPLOYMENT.md); logged-out access remains a separate check |
+| Synthetic live hosted workflow proof | [LIVE_WORKFLOW_PROOF.md](LIVE_WORKFLOW_PROOF.md): four categories closed, same-ID audio reopening, water backup routing, and one natural-language status lookup; full ASI:One UI still pending |
 | Business assumptions | [BUSINESS_MODEL.md](BUSINESS_MODEL.md) |
 
 ## Official submission workflow

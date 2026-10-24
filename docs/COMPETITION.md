@@ -53,7 +53,7 @@ flowchart TD
 
 The complete demonstration stays inside ASI:One. Task creation, offers, acceptance, follow-up, escalation, and closure must be persistent operations rather than generated descriptions. Agentverse's hosted runtime resets global variables between invocations; the hosted design therefore stores workflow and routing state in Agent Storage. The hosted editor supports modules across multiple files and provides Agent Secrets for credentials. [Hosted Agents](https://docs.agentverse.ai/documentation/create-agents/hosted-agents), [Hosted Code Editor](https://docs.agentverse.ai/documentation/create-agents/hosted-code-editor)
 
-Hosted implementation, live message exchange, deployment, and ASI:One discoverability remain pending until separately verified. Using uAgents or creating a hosted agent does not by itself prove the complete flow is registered, searchable, and usable. The local verification baseline uses Python 3.12 and uAgents 0.25.5; the hosted environment and allowed imports must be checked before deployment.
+Hosted implementation, deployment, and actual vendor exchanges have now been verified through synthetic rehearsals across all four service categories, including water backup routing and same-ID audio reopening. One hosted natural-language status lookup also succeeded. [Verification scope](LIVE_WORKFLOW_PROOF.md). The complete ASI:One UI workflow and discoverability still require separate verification. Using uAgents or creating a hosted agent does not by itself prove the complete flow is searchable and usable. The tested local environment uses Python 3.12 and uAgents 0.25.5.
 
 ## Competition proof
 

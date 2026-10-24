@@ -25,6 +25,6 @@ Reviewed for the EventRelay competition concept on **24 October 2026**. Product 
 
 All names, staffing rules, response timers, and physical work used in the demonstration are synthetic or configured test data unless expressly documented otherwise. No interviews, deployed customers, financial results, or time savings are claimed.
 
-The approved architecture is five Agentverse Hosted Agents—coordinator, hospitality, audio, facilities, and housekeeping—with ASI:One as the sole user interface and direct uAgents/ACP interaction. It does not use a custom frontend, LangChain, or MCP. Hosted implementation tests, deployments, message exchanges, state persistence, and ASI discovery remain pending until verified; they are not claims derived from these sources.
+The approved architecture is five Agentverse Hosted Agents—coordinator, hospitality, audio, facilities, and housekeeping—with ASI:One as the sole user interface and direct uAgents/ACP interaction. It does not use a custom frontend, LangChain, or MCP. Implementation, deployment, message-exchange, and persistence claims are supported by the separate [test and live rehearsal records](VERIFICATION.md), not inferred from these sources. ASI:One discovery and the complete UI workflow remain separately unverified.
 
 The local verification baseline is Python 3.12 and uAgents 0.25.5. Hosted runtime compatibility is a separate verification item. The pricing options in [BUSINESS_MODEL.md](BUSINESS_MODEL.md) are unvalidated hypotheses, not sourced market prices or existing revenue.

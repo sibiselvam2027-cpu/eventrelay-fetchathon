@@ -2,7 +2,7 @@
 
 Verified on **24 October 2026 at approximately 15:38 IST (10:08 UTC)** using `avctl hosting logs` against each deployed address. These are Agentverse-hosted deployments. They do not depend on a running local mailbox agent or a custom frontend.
 
-**Later positive rehearsal:** at 16:16:19 IST, actual hosted coordinator/hospitality exchanges took synthetic drinking-water issue ER-A50BFBB4 through primary decline, backup acceptance, progress, completion, and reporter-confirmed closure. The diagnostic observer did not supply the acceptance. See [the sanitized live workflow proof](LIVE_WORKFLOW_PROOF.md). ASI:One UI and LLM extraction are not established by that structured-message test.
+**Later positive rehearsals:** water reached closure at 16:16:19 IST after primary decline and backup acceptance. Audio, power, and cleanup also reached closure by 16:25:07 IST; audio reopened and reaccepted under the same issue ID. Actual hosted vendor agents supplied their configured synthetic acceptance decisions. A plain-language status lookup returned the stored closed water incident. See [the sanitized live workflow proof](LIVE_WORKFLOW_PROOF.md). The full ASI:One UI workflow remains unverified.
 
 ## Hosted agents
 
@@ -38,7 +38,7 @@ Server log timestamps were treated as UTC and converted to Asia/Kolkata for the 
 
 **[Open EventRelay Coordinator in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu).** This is the entry URL observed during live testing. The intended user interface is ASI:One, including native clarification, progress, and confirmation cards.
 
-At approximately **15:40 IST**, ASI:One reached the deployed coordinator and displayed its actual agent response. That response reported **ASI1 authentication failed**. The ACP request/reply path is therefore observed, while natural-language routing and the complete issue lifecycle remain unverified. Subsequent ASI:One frontend 503/504 errors affected websocket/history access and follow-up messages stalled. The latest SDK-client/configuration changes remain under verification; this record does not claim that authentication has been repaired.
+At approximately **15:40 IST**, ASI:One reached the deployed coordinator and displayed its actual agent response. That response reported **ASI1 authentication failed**. Subsequent ASI:One frontend 503/504 errors affected websocket/history access and follow-up messages stalled. The later diagnostic rehearsal successfully exercised a natural-language status lookup through the hosted coordinator. That successful lookup is narrower than a complete ASI:One UI workflow or all natural-language intents.
 
 A successful complete ASI:One workflow, public shared-chat URL, logged-out profile access, and demo video must still be verified separately. Registration, startup, and an error reply are distinct from a completed workflow.
 
@@ -50,8 +50,8 @@ Three test-report dispatches were confirmed at approximately 15:52:10, 15:53:49,
 
 The observer and a failed-deployment orphan were then removed after exact-ID verification. At that cleanup check, the account inventory contained the five compiled/running EventRelay product agents. Separate diagnostic control agents are not submitted product roles.
 
-## Subsequent configuration fix under verification
+## Subsequent configuration fix and hosted verification
 
-Peer-dispatch logs contained a trailing carriage-return character in configured public addresses. The source now normalizes that formatting and migrates stored peer routes without clearing existing issues. Local regressions, including the contaminated-configuration lifecycle, pass as part of the 73-test suite. New deployment, live callback delivery, natural-language reasoning, and the complete ASI:One workflow remain separate verification steps. An independent minimal control agent also encountered ASI frontend chat-start failures during diagnosis.
+Peer-dispatch logs contained a trailing carriage-return character in configured public addresses. The source now normalizes that formatting and migrates stored peer routes without clearing existing issues. Regressions, including the contaminated-configuration lifecycle, pass as part of the 73-test suite. Subsequent deployed rehearsals verified actual vendor exchanges, callback delivery, persistent closure across all four service categories, same-ID audio reopening, and one natural-language status lookup. The complete ASI:One UI workflow remains a separate verification step. An independent minimal control agent also encountered ASI frontend chat-start failures during diagnosis.
 
 The supplied event, crew identities, staff decisions, and physical work remain explicitly labelled demonstration data. Hosted agent execution and inter-agent messages are separate from any claim that real event staff were contacted or physical work occurred.

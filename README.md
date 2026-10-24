@@ -7,9 +7,9 @@ EventRelay coordinates event-day problems across independent vendor teams. A fam
 
 **[Try EventRelay in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu)** · [Public repository](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) · [73-test CI evidence](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40087069509)
 
-**Verified status, 24 October 2026:** all five hosted agents started and registered. An actual hosted coordinator-to-hospitality rehearsal reached reporter-confirmed closure at **16:16:19 IST**, including a configured primary decline and backup acceptance. Staff decisions, physical work, and reporter actions were explicitly synthetic. [Live hosted workflow proof](docs/LIVE_WORKFLOW_PROOF.md)
+**Verified status, 24 October 2026:** all five hosted agents started and registered. Actual hosted rehearsals closed synthetic water, audio, power, and cleanup incidents by **16:25:07 IST**. Water included primary decline and backup acceptance; audio included same-issue reopening and reacceptance. A live natural-language status query returned the stored closed water issue. Staff decisions, physical work, and reporter actions were explicitly synthetic. [Live hosted workflow proof](docs/LIVE_WORKFLOW_PROOF.md)
 
-The complete **ASI:One user-interface workflow and live LLM extraction remain unverified**. An earlier ASI:One request displayed an actual coordinator response reporting an ASI1 authentication error; subsequent frontend 503/504 errors affected follow-up testing. The positive structured-message rehearsal does not replace the required ASI:One shared-chat demonstration.
+The complete **ASI:One user-interface workflow remains unverified**. Earlier frontend 503/504 errors affected follow-up testing. The later natural-language status probe succeeded through the hosted coordinator, but a complete natural-language report/clarification flow and public ASI:One shared-chat demonstration still need separate proof.
 
 The latest code uses the documented OpenAI-compatible SDK client for ASI1 and provides a clearly labelled **manual guided form inside ASI:One** when ASI1 is unavailable. This recovery requires the user to supply the category and location; it does not claim successful AI reasoning. Live rendering of that recovery form remains unverified.
 
@@ -92,7 +92,7 @@ Measure time to an accepted owner, time an issue remains unowned, manual follow-
 
 ## Review and submission status
 
-Code and passing local/CI tests are available. All five hosted startups, one ASI:One-to-coordinator reply, and a structured live coordinator/hospitality incident reaching closure have been observed. Natural-language routing, the complete ASI:One user-interface workflow, a public shared chat, and the demo video remain unverified. The live proof uses explicitly synthetic staff and reporter actions.
+Code and passing local/CI tests are available. Hosted rehearsals verified all five roles, closure across four categories, same-ID audio reopening, and one natural-language status lookup. The complete ASI:One user-interface workflow, full natural-language report/clarification flow, public shared chat, and demo video remain unverified. The live proof uses explicitly synthetic staff and reporter actions.
 
 The bundled event is synthetic. Real deployments require event-specific staff identities and responsibility mappings. Automatic demo responses are explicitly labelled; production mode requires authenticated staff responses. No WhatsApp, phone, or real-world repair integration is claimed.
 

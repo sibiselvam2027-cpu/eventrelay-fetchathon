@@ -16,7 +16,7 @@ These are local tests using actual uAgents model/protocol classes and a fake hos
 
 All five hosted identities have been created, and retrieved cloud logs show successful startup and registration for each agent. Coordinator interval handlers also continued executing. [Live deployment record](LIVE_DEPLOYMENT.md)
 
-At approximately 15:40 IST, ASI:One reached the coordinator and displayed its actual response. This verifies an ACP request/reply path. The response reported an ASI1 authentication error; it does not verify natural-language reasoning or a complete issue workflow. Later ASI:One frontend 503/504 errors affected websocket/history requests and follow-up sends stalled. No completed live multi-agent demonstration, public shared chat, or successful authentication repair is claimed while those checks remain pending.
+At approximately 15:40 IST, ASI:One reached the coordinator and displayed its actual response. This verifies an ACP request/reply path. That response reported an ASI1 authentication error and did not verify natural-language reasoning. Later ASI:One frontend 503/504 errors affected websocket/history requests and follow-up sends stalled. The later hosted rehearsals below establish a separate multi-agent workflow and successful status lookup; the full ASI:One UI workflow and public shared chat remain pending.
 
 Hosted state uses one sequential coordinator writer. No distributed compare-and-swap guarantee is claimed for Agent Storage.
 
@@ -41,3 +41,9 @@ The configuration/migration source commit `8896fbb2dc0f934e593f50975285991243747
 After the configuration fix, actual hosted coordinator/hospitality transport carried synthetic issue ER-A50BFBB4 through offered v2, backup offered v4, Neha accepted v5, in progress v6, awaiting confirmation v7, and closure at **16:16:19 IST** in the same ACP session. The hospitality agent supplied its configured synthetic primary-decline/backup-accept decisions; the observer never clicked Accept. Progress, physical work, and reporter confirmation were explicitly simulated. [Sanitized proof](LIVE_WORKFLOW_PROOF.md)
 
 This establishes the tested hosted orchestration and persistent lifecycle for that category. It supersedes the earlier routing-failure limitation for this structured-message path. It does not establish ASI:One frontend availability, LLM extraction, a public shared chat, or real-world service completion.
+
+## Additional service categories and natural-language status lookup
+
+By **16:25:07 IST**, a further hosted rehearsal observed audio `ER-3B225E95`, power `ER-CB20232F`, and cleanup `ER-5C25C933` reach closure. Audio first reached awaiting confirmation, reopened under the same ID, reaccepted, and then closed. Actual vendor agents supplied their configured synthetic accept decisions. Diagnostic actions simulated crew progress, physical work, and reporter confirmation. [Recorded states and scope](LIVE_WORKFLOW_PROOF.md)
+
+The plain-language request “show status of ER-A50BFBB4” returned the actual stored closed water issue through the hosted ASI1 extraction path without the earlier authentication error. This is evidence for that natural-language status lookup. It does not establish the complete natural-language report/clarification path or ASI:One frontend completion. Shared chat, video, live native-form rendering, and real service delivery remain unverified.
