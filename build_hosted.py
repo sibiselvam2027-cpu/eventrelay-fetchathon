@@ -33,17 +33,34 @@ def main():
             (target / name).write_text(text, encoding="utf-8")
         (target / "agent.py").write_text(
             "# Agentverse supplies the hosted 'agent' instance.\n"
+            "# Older hosted templates instead require the zero-argument Agent().\n"
+            "from uagents import Agent\n"
             "from hosted_runtime import attach\n\n"
-            f"attach(agent, role={role!r})\n", encoding="utf-8")
+            "try:\n    agent\nexcept NameError:\n    agent = Agent()\n\n"
+            "try:\n"
+            f"    attach(agent, role={role!r})\n"
+            "except Exception:\n    import traceback\n    print(traceback.format_exc())\n    raise\n", encoding="utf-8")
         (target / "pyproject.toml").write_text(
             "[project]\n" + f'name = "eventrelay-{role}"\nversion = "0.1.0"\ndescription = "{DESCRIPTIONS[role]}"\n'
-            'requires-python = ">=3.10,<3.14"\ndependencies = ["uagents==0.25.5", "uagents-core==0.4.12", "pydantic==2.14.1"]\n', encoding="utf-8")
-        example = "ASI1_API_KEY=\nASI1_MODEL=asi1\nEVENTRELAY_DEMO_MODE=1\nEVENTRELAY_COORDINATOR_ADDRESS=\nEVENTRELAY_HOSPITALITY_ADDRESS=\nEVENTRELAY_AUDIO_ADDRESS=\nEVENTRELAY_FACILITIES_ADDRESS=\nEVENTRELAY_HOUSEKEEPING_ADDRESS=\nEVENTRELAY_ORGANIZER_SENDERS=\nEVENTRELAY_STAFF_SENDERS={}\nEVENTRELAY_DEMO_DECISIONS={\"staff_arun\":\"decline\",\"staff_neha\":\"accept\",\"staff_ravi\":\"accept\",\"staff_sara\":\"accept\",\"staff_vikram\":\"accept\",\"staff_pooja\":\"accept\",\"staff_meena\":\"accept\",\"staff_kiran\":\"accept\"}\n"
+            'requires-python = ">=3.10,<3.14"\ndependencies = ["uagents==0.25.5", "uagents-core==0.4.12"]\n', encoding="utf-8")
+        example = "# Agentverse injects ASI1_API_KEY and ASI1_BASE_URL; omit empty overrides.\nASI1_MODEL=asi1\nEVENTRELAY_DEMO_MODE=1\nEVENTRELAY_COORDINATOR_ADDRESS=\nEVENTRELAY_HOSPITALITY_ADDRESS=\nEVENTRELAY_AUDIO_ADDRESS=\nEVENTRELAY_FACILITIES_ADDRESS=\nEVENTRELAY_HOUSEKEEPING_ADDRESS=\nEVENTRELAY_ORGANIZER_SENDERS=\nEVENTRELAY_STAFF_SENDERS={}\nEVENTRELAY_DEMO_DECISIONS={\"staff_arun\":\"decline\",\"staff_neha\":\"accept\",\"staff_ravi\":\"accept\",\"staff_sara\":\"accept\",\"staff_vikram\":\"accept\",\"staff_pooja\":\"accept\",\"staff_meena\":\"accept\",\"staff_kiran\":\"accept\"}\n"
         (target / ".env.example").write_text(example, encoding="utf-8")
         # AVCTL needs a local configuration file. This contains placeholders only;
         # real values must be put into Agent Secrets and never committed.
         if not (target / ".env").exists():
             (target / ".env").write_text(example, encoding="utf-8")
+        else:
+            # Preserve private configured values, but never mask the platform's
+            # injected hosted credentials with obsolete blank placeholders.
+            env_path = target / ".env"
+            lines = env_path.read_text(encoding="utf-8").splitlines()
+            kept = []
+            for line in lines:
+                name, separator, value = line.partition("=")
+                if separator and name.strip() in {"ASI1_API_KEY", "ASI1_BASE_URL"} and not value.strip():
+                    continue
+                kept.append(line)
+            env_path.write_text("\n".join(kept) + "\n", encoding="utf-8")
         (target / "README.md").write_text(
             f"# EventRelay {role.title()}\n\n{DESCRIPTIONS[role]}\n\n"
             "![tag:innovationlab](https://img.shields.io/badge/innovationlab-3D8BD3)\n"

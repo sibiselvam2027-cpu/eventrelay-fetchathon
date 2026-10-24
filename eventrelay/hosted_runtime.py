@@ -7,8 +7,6 @@ Timer changes are visible through ASI status polling; unsolicited ASI delivery
 across conversation sessions is deliberately not assumed.
 """
 
-from __future__ import annotations
-
 import json
 import os
 import re
@@ -42,7 +40,7 @@ def _setting(ctx, name, default=""):
 def _prepare(ctx):
     # Hosted secrets remain in memory. They are never put in storage, source,
     # model messages, cards or logs. The existing ASI client reads this key.
-    for name in ("ASI1_API_KEY", "ASI1_MODEL", "EVENTRELAY_DEMO_MODE"):
+    for name in ("ASI1_API_KEY", "ASI1_BASE_URL", "ASI1_MODEL", "EVENTRELAY_DEMO_MODE"):
         value = _setting(ctx, name)
         if value:
             os.environ[name] = str(value)
@@ -161,12 +159,22 @@ def attach(agent, role):
     """Attach EventRelay to an Agentverse-provided `agent`; never call run()."""
     if role not in ROLES:
         raise ValueError("Unknown hosted EventRelay role.")
+    def stage(label):
+        logger = getattr(agent, "logger", None) or getattr(agent, "_logger", None)
+        if logger is not None:
+            logger.info("EventRelay attach: " + label)
+        else:
+            print("EventRelay attach: " + label)
+    stage("01 creating chat protocol")
     chat = Protocol(spec=chat_protocol_spec)
+    stage("02 creating operations protocol")
     operations = Protocol(name="EventRelayOffers", version="1.0.0")
 
     @chat.on_message(ChatAcknowledgement)
     async def acknowledge(ctx: Context, sender: str, msg: ChatAcknowledgement):
         pass
+
+    stage("03 acknowledgement handler registered")
 
     @chat.on_message(ChatMessage)
     async def receive_chat(ctx: Context, sender: str, msg: ChatMessage):
@@ -235,6 +243,7 @@ def attach(agent, role):
             ctx.logger.error(f"Hosted event step failed ({type(exc).__name__})")
             await ctx.send(sender, _chat_message({"text": "This event step could not complete. Check status and retry; delivery alone has not accepted or closed an issue."}))
 
+    stage("04 chat handler registered")
     if role == "coordinator":
         @operations.on_message(VendorDecision)
         async def receive_decision(ctx: Context, sender: str, msg: VendorDecision):
@@ -257,6 +266,7 @@ def attach(agent, role):
             recipient = origin["recipient"] if origin and origin["session"] == str(ctx.session) else None
             await _deliver(ctx, response, outgoing, recipient)
 
+        stage("05 vendor decision handler registered")
         @operations.on_message(VendorCommand)
         async def receive_progress(ctx: Context, sender: str, msg: VendorCommand):
             _prepare(ctx)
@@ -276,6 +286,7 @@ def attach(agent, role):
             recipient = origin["recipient"] if origin["session"] == str(ctx.session) else None
             await _deliver(ctx, response, outgoing, recipient)
 
+        stage("06 progress handler registered")
         @agent.on_interval(period=5.0)
         async def sweep(ctx: Context):
             _prepare(ctx)
@@ -306,6 +317,9 @@ def attach(agent, role):
                                                       staff_id=msg.staff_id, decision=decision,
                                                       version=msg.version, simulated=True))
 
+    stage("07 including chat protocol")
     agent.include(chat, publish_manifest=True)
+    stage("08 including operations protocol")
     agent.include(operations, publish_manifest=True)
+    stage("09 attached successfully")
     return agent

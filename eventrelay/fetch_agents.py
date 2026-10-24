@@ -4,8 +4,6 @@ Transport delivery never counts as a staff acceptance. Automated decisions are
 available only in explicitly labelled demo mode with a configured staff choice.
 """
 
-from __future__ import annotations
-
 import argparse
 import asyncio
 from contextlib import contextmanager

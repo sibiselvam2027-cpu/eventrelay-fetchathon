@@ -94,6 +94,13 @@ class HostedRuntimeTests(unittest.TestCase):
                 agent = self.agent(role)
                 self.assertEqual(len(agent.protocols), 2)
 
+    def test_registered_hosted_message_annotations_are_classes_not_strings(self):
+        for role in ("coordinator", "hospitality", "audio", "facilities", "housekeeping"):
+            agent = self.agent(role)
+            for protocol in agent.protocols:
+                for function in protocol.signed_message_handlers.values():
+                    self.assertIsInstance(function.__annotations__["msg"], type)
+
     def test_hosted_report_decline_backup_and_accept_survive_new_invocations(self):
         coordinator_storage, hospitality_storage = MemoryStorage(), MemoryStorage()
         coordinator = self.agent("coordinator")

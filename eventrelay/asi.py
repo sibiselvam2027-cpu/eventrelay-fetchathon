@@ -6,6 +6,7 @@ import asyncio
 import json
 import os
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
 
@@ -86,7 +87,12 @@ def extract_intent(text: str, event_context: dict | str | None = None,
                "messages": [{"role": "system", "content": _SYSTEM},
                             {"role": "user", "content": user}],
                "temperature": 0, "max_tokens": 650}
-    request = Request("https://api.asi1.ai/v1/chat/completions",
+    base_url = os.environ.get("ASI1_BASE_URL", "https://api.asi1.ai/v1").strip().rstrip("/")
+    parsed_url = urlsplit(base_url)
+    if (parsed_url.scheme != "https" or not parsed_url.netloc or parsed_url.username
+            or parsed_url.password or parsed_url.query or parsed_url.fragment):
+        raise ASIError("ASI1_BASE_URL must be an HTTPS API base URL without credentials or query parameters.")
+    request = Request(base_url + "/chat/completions",
                       data=json.dumps(payload).encode("utf-8"),
                       headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
                       method="POST")
