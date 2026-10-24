@@ -42,7 +42,7 @@ At approximately **15:40 IST**, ASI:One reached the deployed coordinator and dis
 
 A successful complete ASI:One workflow, public shared-chat URL, logged-out profile access, and demo video must still be verified separately. Registration, startup, and an error reply are distinct from a completed workflow.
 
-The latest source adds manual guided-form recovery inside ASI:One when ASI1 fails. The form requires a user-supplied category and location before dispatch; it does not represent successful LLM reasoning. Its live rendering and the revised client remain pending verification.
+The latest source adds manual guided-form recovery inside ASI:One when ASI1 fails. The form requires a user-supplied category and location before dispatch; it does not represent successful LLM reasoning. Its live rendering remains pending; the successful natural-language status lookup does not establish form rendering.
 
 ## Diagnostic observer result and cleanup
 

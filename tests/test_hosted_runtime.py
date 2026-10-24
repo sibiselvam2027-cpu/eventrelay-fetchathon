@@ -116,12 +116,18 @@ class HostedRuntimeTests(unittest.TestCase):
                 for function in protocol.signed_message_handlers.values():
                     self.assertIsInstance(function.__annotations__["msg"], type)
 
-    def test_network_transport_receives_the_explicit_sdk_timeouts(self):
+    def test_envelope_ttl_is_separate_from_the_invocation_await_budget(self):
         ctx = HostContext(MemoryStorage())
         message = ChatMessage(content=[TextContent(type="text", text="Timeout test")])
-        self.assertTrue(immediate(_send(ctx, "recipient", message, timeout=2.0)))
-        self.assertTrue(immediate(_send(ctx, "recipient", message, timeout=4.0)))
-        self.assertEqual([2, 4], ctx.network_timeouts)
+        budgets = []
+        async def capture_budget(awaitable, timeout):
+            budgets.append(timeout)
+            return await awaitable
+        with patch("eventrelay.hosted_runtime._with_timeout", new=capture_budget):
+            self.assertTrue(immediate(_send(ctx, "recipient", message, timeout=2.0)))
+            self.assertTrue(immediate(_send(ctx, "recipient", message, timeout=4.0)))
+        self.assertEqual([30, 30], ctx.network_timeouts)
+        self.assertEqual([2.0, 4.0], budgets)
 
     def test_hosted_report_decline_backup_and_accept_survive_new_invocations(self):
         self._hosted_report_to_closure()
@@ -316,6 +322,17 @@ class HostedRuntimeTests(unittest.TestCase):
             self.assertEqual([], session.store.list_issues("wedding-demo"))
         finally:
             session.close()
+
+    def test_missing_hosted_key_is_observable_without_logging_secret_values(self):
+        os.environ["ASI1_API_KEY"] = ""
+        os.environ["ASI1_MODEL"] = "private-value-in-wrong-setting"
+        ctx = HostContext(MemoryStorage())
+        message = ChatMessage(content=[TextContent(type="text", text="Something is wrong at the event")])
+        immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
+        logs = "\n".join(str(call.args[0]) for call in ctx.logger.info.call_args_list)
+        self.assertIn("key_present=False", logs)
+        self.assertIn("model=[custom]", logs)
+        self.assertNotIn("private-value-in-wrong-setting", logs)
 
 
 if __name__ == "__main__":

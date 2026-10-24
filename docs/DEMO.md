@@ -17,16 +17,33 @@
 | 0:00–0:25 | “At a wedding, the caterer, sound team, venue staff, and family all work together, but they have different responsibilities. When a problem happens, one coordinator has to find someone, chase them, and update the family. EventRelay keeps that handoff accountable.” | ASI:One coordinator; demonstration-data label |
 | 0:25–0:45 | Report: **“There is a water issue in the Dining Hall.”** | A short clarifying question rather than a guessed assignment |
 | 0:45–1:05 | Clarify: **“The drinking water has run out. Guests are waiting.”** | Recorded category and location; issue ID; an offer to Arun |
-| 1:05–1:25 | “The task is offered, but nobody owns it yet.” As Arun, decline through the supported staff action: **“I cannot take this; I am handling the buffet.”** | Explicit decline; task offered to Neha; original issue ID retained |
-| 1:25–1:45 | As Neha, accept, then mark work in progress. “Now we have an accountable owner. The coordinator did not mistake a delivered message for acceptance.” | Neha as accepted owner; state transition and timestamp |
-| 1:45–2:05 | As Neha, report completion: **“Drinking-water dispensers refilled.”** | **Awaiting confirmation**, not Closed |
+| 1:05–1:25 | “The task is offered, but nobody owns it yet. For this demonstration, the actual hospitality agent has a configured synthetic policy: Arun declines; Neha accepts the backup offer.” Refresh status. | Actual vendor-agent decisions; original issue ID retained. Do not click the reporter's Demo Accept button and attribute that to the vendor. |
+| 1:25–1:45 | Use **Demo: Start work**. “Now we have an accountable owner. The coordinator did not mistake a delivered message for acceptance. I am simulating the physical crew's next action.” | Neha as accepted owner; recorded start |
+| 1:45–2:05 | Use **Demo: Report completed**. “The simulated crew reports that the dispensers were refilled.” | **Awaiting confirmation**, not Closed |
 | 2:05–2:30 | As the reporter, respond: **“Not fully resolved. The second counter still has no water.”** | Same incident reopened, new details preserved, another offer or reassignment |
 | 2:30–3:00 | Complete the supported acceptance/work/completion steps. As the reporter, confirm: **“Both counters now have drinking water. Resolved.”** | Closed only after reporter confirmation |
 | 3:00–3:25 | “Here is the history: report, clarification, decline, backup acceptance, work, disputed completion, and confirmed resolution.” | Persistent activity history; responsible people and timestamps |
-| 3:25–3:50 | Run one pretested exception: an offer expires and reaches its approved backup, **or** all eligible staff decline and the issue escalates to the organizer. | An actual recorded timeout/reassignment or visible unresolved escalation |
+| 3:25–3:50 | Briefly show the recorded audio, power, and cleanup rehearsal results. “All five agents participated in our hosted tests. The audio issue was reopened under the same ID.” | Saved tested issue statuses; clearly identify prior rehearsal evidence rather than implying freshly performed repairs |
 | 3:50–4:00 | “EventRelay turns a complaint into an accountable handoff and a confirmed outcome. Our next test is with an event planner using their own roster and escalation rules.” | Final status; no invented customer or business metrics |
 
 If using a shortened timer to show escalation, say **“The demo timer is accelerated.”** An estimated arrival time must come from a crew response or an explicitly labelled test policy.
+
+## Exact rehearsal operations
+
+Keep one ASI:One conversation open for the report, crew simulation, and reporter confirmation. Replace `ER-XXXXXXXX` below with the issue ID returned by that conversation. Native buttons are preferred after their live rendering is verified; the plain-text commands use the same backend within ASI:One.
+
+| Step | Native interaction / exact text | Check before continuing |
+|---|---|---|
+| 1 | Say **“There is a water issue in the Dining Hall.”** Answer the clarification with **“The drinking water has run out.”** | Correct category `drinking_water`, location Dining Hall, one new issue ID. Natural-language report/clarification remains a live rehearsal requirement. |
+| 2 | **Refresh status**, or `status ER-XXXXXXXX` | Actual hospitality policy declines Arun and accepts Neha. Wait for Accepted; delivery alone is insufficient. |
+| 3 | **Demo: Start work**, or `start ER-XXXXXXXX` | In progress; say that physical crew activity is simulated. |
+| 4 | **Demo: Report completed**, or `done ER-XXXXXXXX: Both drinking-water counters were refilled in this simulation.` | Awaiting confirmation. |
+| 5 | **Still a problem**, or `reopen ER-XXXXXXXX: The second counter still has no drinking water.` | Same ID remains open; refresh until its next actual vendor acceptance. |
+| 6 | Repeat start and done for that same ID. | Awaiting confirmation again. |
+| 7 | **Yes, resolved**, or `confirm ER-XXXXXXXX` | Closed only after this original reporter action. |
+| 8 | Say **“show status of ER-XXXXXXXX”** | Actual stored status. This phrasing exercises ASI1 intent extraction; exact `status` commands use the transparent command path. |
+
+If the frontend keeps streaming or fails before agent content appears, stop narrating actions as completed. Say: **“Our hosted agent workflow passed the recorded synthetic rehearsals. This live ASI:One frontend attempt has not completed, so we are showing the verified evidence and clearly separating it from the UI requirement.”** A hosted observer or local console is diagnostic evidence; it does not substitute for the required public ASI:One shared chat.
 
 ## Optional cross-team demonstration
 

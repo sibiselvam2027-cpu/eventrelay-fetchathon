@@ -170,9 +170,11 @@ async def _with_timeout(awaitable, timeout):
 
 async def _send(ctx, recipient, message, timeout=4.0):
     try:
-        # Also bound the SDK/host transport itself. An outer asyncio deadline
-        # alone cannot interrupt a blocking host RPC or resolver implementation.
-        await _with_timeout(ctx.send(recipient, message, timeout=max(1, int(timeout))), timeout)
+        # SDK timeout also sets the signed Envelope TTL. Keep its normal 30s
+        # delivery lifetime while bounding this invocation's await separately;
+        # a 2s ACK budget must not make the gateway discard an otherwise valid
+        # delayed envelope after only two seconds.
+        await _with_timeout(ctx.send(recipient, message, timeout=30), timeout)
         return True
     except asyncio.TimeoutError:
         ctx.logger.warning("Hosted message delivery exceeded its time budget; persisted offers can retry.")
@@ -249,9 +251,12 @@ def attach(agent, role):
             intent = parsed if isinstance(parsed, dict) else None
             explicit = re.fullmatch(r"(?:help|roster|tick)|(?:status|accept|decline|start|done|confirm|reopen)(?:\s+ER-[0-9A-F]{8}(?:\s+.*)?)?", text, re.IGNORECASE)
             live = bool(os.environ.get("ASI1_API_KEY", "").strip())
-            if intent is None and not explicit and live:
+            if intent is None and not explicit:
                 base = urlsplit(os.environ.get("ASI1_BASE_URL", "https://api.asi1.ai/v1"))
-                ctx.logger.info(f"ASI1 configuration: base_host={base.hostname}; base_path={base.path}; key_present=True; hosted_sdk={bool(os.environ.get('ASI1_BASE_URL'))}")
+                model = os.environ.get("ASI1_MODEL", "asi1").strip()
+                safe_model = model if model in {"asi1", "asi1-mini", "asi1-ultra", "asi1-extended"} else "[custom]"
+                ctx.logger.info(f"ASI1 configuration: base_host={base.hostname}; base_path={base.path}; key_present={live}; hosted_sdk={bool(os.environ.get('ASI1_BASE_URL'))}; model={safe_model}")
+            if intent is None and not explicit and live:
                 context_session = open_hosted_service(ctx.storage)
                 try:
                     context = context_session.service.context(actor)

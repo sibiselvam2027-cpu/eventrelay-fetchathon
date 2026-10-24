@@ -1,5 +1,7 @@
 # Verification record
 
+**Current published source baseline: 73 tests passed locally and in [GitHub Actions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40087069509).** Subsequent docs-only rehearsal evidence also passed [CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40088130110). Actual hosted rehearsals closed four synthetic service categories and exercised same-ID reopening plus one natural-language status lookup. Full ASI:One UI completion remains pending. The entries below preserve the verification history and its limits.
+
 Local verification on 24 October 2026 used Python 3.12.14, uAgents 0.25.5, uAgents Core 0.4.12 and Pydantic 2.14.1.
 
 **65 tests passed** before the initial repository publication. The five generated hosted projects also passed Python compilation. The scripted end-to-end scenario passed seven workflow assertions.
@@ -47,3 +49,9 @@ This establishes the tested hosted orchestration and persistent lifecycle for th
 By **16:25:07 IST**, a further hosted rehearsal observed audio `ER-3B225E95`, power `ER-CB20232F`, and cleanup `ER-5C25C933` reach closure. Audio first reached awaiting confirmation, reopened under the same ID, reaccepted, and then closed. Actual vendor agents supplied their configured synthetic accept decisions. Diagnostic actions simulated crew progress, physical work, and reporter confirmation. [Recorded states and scope](LIVE_WORKFLOW_PROOF.md)
 
 The plain-language request “show status of ER-A50BFBB4” returned the actual stored closed water issue through the hosted ASI1 extraction path without the earlier authentication error. This is evidence for that natural-language status lookup. It does not establish the complete natural-language report/clarification path or ASI:One frontend completion. Shared chat, video, live native-form rendering, and real service delivery remain unverified.
+
+## Final transport and safe diagnostic revision
+
+The final source preserves the SDK's normal 30-second envelope lifetime while retaining independent local acknowledgment/final-send wait budgets of 2/4 seconds. A regression checks both values separately. Safe diagnostics record whether a key is present and a known model name or `[custom]`; no credential or arbitrary model-setting value is logged. **74 local tests passed**, all five hosted projects were regenerated, and Python compilation passed. CI for this publication must be verified separately.
+
+At the final frontend check, an ASI:One attempt still failed to start and another browser attempt remained loading. These are observed attempt failures, not a claim of a platform-wide outage. A completed public shared chat, 3–5 minute demo video, and actual competition submission are not yet available.

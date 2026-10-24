@@ -39,7 +39,7 @@ All five roles must run as Agentverse Hosted Agents. ASI:One is the sole product
 
 That earlier reply reported ASI1 authentication failure. A later hosted natural-language status lookup succeeded without that error; the complete natural-language report/clarification flow and ASI:One UI workflow remain pending. Frontend observation encountered 503/504 errors and stalled sends.
 
-The latest source offers an explicitly labelled manual guided form inside ASI:One when ASI1 is unavailable. It creates no issue or offer until the user submits the required details. Live form rendering and the final client revision must still be verified; this fallback is not evidence that the LLM authentication problem is fixed.
+The latest source offers an explicitly labelled manual guided form inside ASI:One when ASI1 is unavailable. It creates no issue or offer until the user submits the required details. Live form rendering must still be verified; this fallback alone is not evidence that natural-language understanding works.
 
 Earlier temporary observer tests confirmed report dispatch but received no callbacks before stopping; those tests alone establish no acceptance or closure. Later hosted rehearsals supplied the positive four-category evidence below. Diagnostic agents are not submitted product roles.
 
