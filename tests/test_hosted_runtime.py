@@ -432,7 +432,7 @@ class HostedRuntimeTests(unittest.TestCase):
         observed = []
         async def blocked_operations(awaitable, timeout):
             observed.append(timeout)
-            if timeout in {2.0, 8.0}:
+            if timeout in {2.0, 20.0}:
                 awaitable.close()
                 raise asyncio.TimeoutError
             return await awaitable
@@ -441,7 +441,7 @@ class HostedRuntimeTests(unittest.TestCase):
         message = ChatMessage(content=[TextContent(type="text", text="The water bottles are empty in the Dining Hall")])
         with patch("eventrelay.hosted_runtime._with_timeout", new=blocked_operations):
             immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
-        self.assertEqual([2.0, 8.0, 4.0], observed)
+        self.assertEqual([2.0, 20.0, 4.0], observed)
         self.assertFalse(any(isinstance(item, IssueOffer) for _, item in ctx.sent))
         self.assertTrue(any(isinstance(item, ChatMessage) and "manual guided mode" in item.text() for _, item in ctx.sent))
         session = open_hosted_service(storage)
@@ -449,6 +449,25 @@ class HostedRuntimeTests(unittest.TestCase):
             self.assertEqual([], session.store.list_issues("wedding-demo"))
         finally:
             session.close()
+
+    def test_hosted_asi_http_budget_fits_inside_outer_intent_and_invocation_budgets(self):
+        os.environ["ASI1_API_KEY"] = "unit-test-key"
+        budgets, http_timeouts = [], []
+        async def capture_wait(awaitable, timeout):
+            budgets.append(timeout)
+            return await awaitable
+        async def interpret(text, context, *, timeout):
+            http_timeouts.append(timeout)
+            return {"action": "unsupported"}
+        ctx = HostContext(MemoryStorage())
+        message = ChatMessage(content=[TextContent(type="text", text="Describe the event services")])
+        with patch("eventrelay.hosted_runtime._with_timeout", new=capture_wait), \
+             patch("eventrelay.hosted_runtime.extract_intent_async", new=interpret):
+            immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
+        self.assertEqual([18.0], http_timeouts)
+        self.assertEqual([2.0, 20.0, 4.0], budgets)
+        self.assertEqual([30, 30], ctx.network_timeouts)
+        self.assertLess(sum(budgets), 30.0)
 
     def test_missing_hosted_key_is_observable_without_logging_secret_values(self):
         os.environ["ASI1_API_KEY"] = ""

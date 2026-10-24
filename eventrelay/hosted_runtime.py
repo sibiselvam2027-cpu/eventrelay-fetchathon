@@ -31,6 +31,8 @@ STAFF = {"hospitality": {"staff_arun", "staff_neha"}, "audio": {"staff_ravi", "s
          "facilities": {"staff_vikram", "staff_pooja"}, "housekeeping": {"staff_meena", "staff_kiran"}}
 CATEGORY = {"hospitality": "drinking_water", "audio": "audio", "facilities": "power", "housekeeping": "cleanup"}
 TRANSPORT_KEY = "eventrelay.transport.v1"
+ASI_HTTP_TIMEOUT_SECONDS = 18.0
+ASI_INTENT_TIMEOUT_SECONDS = 20.0
 
 
 def _without_own_leading_mention(text, address):
@@ -285,7 +287,9 @@ def attach(agent, role):
                 finally:
                     context_session.close()
                 try:
-                    intent = await _with_timeout(extract_intent_async(text, context, timeout=7.0), 8.0)
+                    intent = await _with_timeout(
+                        extract_intent_async(text, context, timeout=ASI_HTTP_TIMEOUT_SECONDS),
+                        ASI_INTENT_TIMEOUT_SECONDS)
                 except asyncio.TimeoutError:
                     raise ASIError("The AI service exceeded its time budget. Continue with the manual guided form.") from None
             # Reload AFTER the LLM await so no stale snapshot can overwrite a

@@ -72,7 +72,7 @@ def _text(value, limit: int) -> str | None:
 def _sdk_completion(payload: dict, api_key: str, base_url: str, timeout: float) -> str:
     """Use the documented hosted OpenAI-compatible client and injected quota."""
     try:
-        from openai import OpenAI
+        from openai import APIConnectionError, APITimeoutError, OpenAI
     except ImportError:
         raise ASIError("The hosted ASI client dependency is unavailable. Add openai to the hosted dependencies.") from None
     client = None
@@ -85,12 +85,21 @@ def _sdk_completion(payload: dict, api_key: str, base_url: str, timeout: float) 
         return content
     except ASIError:
         raise
+    except APITimeoutError:
+        raise ASIError("The hosted ASI request timed out (APITimeoutError). No issue action was taken.") from None
+    except APIConnectionError:
+        raise ASIError("The hosted ASI connection failed (APIConnectionError). No issue action was taken.") from None
     except Exception as exc:
         status = getattr(exc, "status_code", None)
+        # Only a genuine numeric HTTP status crosses this boundary. Exception
+        # strings, response bodies, headers and arbitrary class names do not.
+        status = status if type(status) is int and 100 <= status <= 599 else None
         if status in (401, 403):
-            raise ASIError("Agentverse's hosted ASI quota credentials were rejected. Check the hosted LLM quota or configure a private ASI key.") from None
+            raise ASIError(f"Agentverse's hosted ASI quota credentials were rejected (HTTP {status}). Check the hosted LLM quota or configure a private ASI key.") from None
         if status == 429:
-            raise ASIError("The hosted ASI quota is rate limited or exhausted. Please retry later.") from None
+            raise ASIError("The hosted ASI quota is rate limited or exhausted (HTTP 429). Please retry later.") from None
+        if status is not None:
+            raise ASIError(f"The hosted ASI request failed (HTTP {status}). No issue action was taken.") from None
         raise ASIError("The hosted ASI client could not complete this request. No issue action was taken.") from None
     finally:
         if client is not None:

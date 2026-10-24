@@ -2,10 +2,10 @@ import io
 import json
 import os
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from urllib.error import HTTPError
 
-from eventrelay.asi import ASIError, extract_intent
+from eventrelay.asi import ASIError, extract_intent, _sdk_completion
 
 
 def response(value):
@@ -76,6 +76,41 @@ class ASITests(unittest.TestCase):
                 extract_intent("hello")
         self.assertNotIn("private-test-key", str(caught.exception))
         self.assertNotIn("private-upstream-text", str(caught.exception))
+
+    def test_sdk_diagnostics_allow_only_known_error_types_and_numeric_status(self):
+        import httpx
+        from openai import APIConnectionError, APIStatusError, APITimeoutError
+
+        secret_key = "private-key-sentinel"
+        secret_body = "private-upstream-body-sentinel"
+        secret_header = "private-header-sentinel"
+        secret_input = "private-request-text-sentinel"
+        request = httpx.Request("POST", "https://hosted.example/v1/chat/completions",
+                                headers={"Authorization": "Bearer " + secret_key}, content=secret_input)
+        cases = [(APITimeoutError(request=request), "APITimeoutError"),
+                 (APIConnectionError(message=secret_body, request=request), "APIConnectionError")]
+        for status in (401, 403, 429, 503):
+            response = httpx.Response(status, request=request, headers={"x-private": secret_header},
+                                      json={"error": secret_body})
+            cases.append((APIStatusError(secret_body, response=response, body={"secret": secret_body}), f"HTTP {status}"))
+        nonnumeric_status = RuntimeError(secret_body)
+        nonnumeric_status.status_code = secret_header
+        cases.append((nonnumeric_status, "could not complete"))
+        for error, classification in cases:
+            with self.subTest(classification=classification):
+                client = Mock()
+                client.chat.completions.create.side_effect = error
+                with patch("openai.OpenAI", return_value=client) as sdk:
+                    with self.assertRaises(ASIError) as caught:
+                        _sdk_completion({"messages": [{"role": "user", "content": secret_input}]},
+                                        secret_key, "https://hosted.example/v1", 18.0)
+                message = str(caught.exception)
+                self.assertIn(classification, message)
+                for secret in (secret_key, secret_body, secret_header, secret_input):
+                    self.assertNotIn(secret, message)
+                self.assertEqual(18.0, sdk.call_args.kwargs["timeout"])
+                self.assertEqual(0, sdk.call_args.kwargs["max_retries"])
+                client.close.assert_called_once()
 
 
 if __name__ == "__main__":
