@@ -11,6 +11,7 @@ import json
 import os
 import re
 import time
+from urllib.parse import urlsplit
 
 from uagents import Context, Protocol
 from uagents_core.contrib.protocols.chat import (
@@ -219,6 +220,8 @@ def attach(agent, role):
             explicit = re.fullmatch(r"(?:help|roster|tick)|(?:status|accept|decline|start|done|confirm|reopen)(?:\s+ER-[0-9A-F]{8}(?:\s+.*)?)?", text, re.IGNORECASE)
             live = bool(os.environ.get("ASI1_API_KEY", "").strip())
             if intent is None and not explicit and live:
+                base = urlsplit(os.environ.get("ASI1_BASE_URL", "https://api.asi1.ai/v1"))
+                ctx.logger.info(f"ASI1 configuration: base_host={base.hostname}; base_path={base.path}; key_present=True; hosted_sdk={bool(os.environ.get('ASI1_BASE_URL'))}")
                 context_session = open_hosted_service(ctx.storage)
                 try:
                     context = context_session.service.context(actor)
@@ -237,7 +240,19 @@ def attach(agent, role):
             finally:
                 session.close()
             await _deliver(ctx, response, outgoing, sender)
-        except (ASIError, ValueError) as exc:
+        except ASIError:
+            if role != "coordinator":
+                await ctx.send(sender, _chat_message({"text": "The AI service is unavailable. Use the coordinator's guided report form."}))
+                return
+            recovery = open_hosted_service(ctx.storage)
+            try:
+                response = recovery.service.guided_report(actor, text, request_id=str(msg.msg_id))
+                recovery.checkpoint()
+            finally:
+                recovery.close()
+            # This response has a fresh form, never an issue or staff offer.
+            await ctx.send(sender, _chat_message(response))
+        except ValueError as exc:
             await ctx.send(sender, _chat_message({"text": str(exc)}))
         except Exception as exc:
             ctx.logger.error(f"Hosted event step failed ({type(exc).__name__})")

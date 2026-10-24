@@ -69,6 +69,34 @@ def _text(value, limit: int) -> str | None:
     return value.strip() or None
 
 
+def _sdk_completion(payload: dict, api_key: str, base_url: str, timeout: float) -> str:
+    """Use the documented hosted OpenAI-compatible client and injected quota."""
+    try:
+        from openai import OpenAI
+    except ImportError:
+        raise ASIError("The hosted ASI client dependency is unavailable. Add openai to the hosted dependencies.") from None
+    client = None
+    try:
+        client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout, max_retries=0)
+        result = client.chat.completions.create(**payload)
+        content = result.choices[0].message.content
+        if not isinstance(content, str):
+            raise ASIError("ASI1 returned unexpected report details. Please retry.")
+        return content
+    except ASIError:
+        raise
+    except Exception as exc:
+        status = getattr(exc, "status_code", None)
+        if status in (401, 403):
+            raise ASIError("Agentverse's hosted ASI quota credentials were rejected. Check the hosted LLM quota or configure a private ASI key.") from None
+        if status == 429:
+            raise ASIError("The hosted ASI quota is rate limited or exhausted. Please retry later.") from None
+        raise ASIError("The hosted ASI client could not complete this request. No issue action was taken.") from None
+    finally:
+        if client is not None:
+            client.close()
+
+
 def extract_intent(text: str, event_context: dict | str | None = None,
                    *, timeout: float = 25.0) -> dict:
     """Return untrusted structured intent; never infer a staff authentication."""
@@ -97,12 +125,19 @@ def extract_intent(text: str, event_context: dict | str | None = None,
                       headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
                       method="POST")
     try:
-        with urlopen(request, timeout=timeout) as response:
-            raw = response.read(80_001)
-        if len(raw) > 80_000:
-            raise ASIError("ASI1 returned an oversized response. Please retry.")
-        result = json.loads(raw)
-        content = result["choices"][0]["message"]["content"]
+        if os.environ.get("ASI1_BASE_URL", "").strip():
+            # Agentverse documents this client path for its injected quota
+            # credentials and proxy; do not substitute a public endpoint.
+            content = _sdk_completion(payload, api_key, base_url, timeout)
+            raw = None
+        else:
+            with urlopen(request, timeout=timeout) as response:
+                raw = response.read(80_001)
+        if raw is not None:
+            if len(raw) > 80_000:
+                raise ASIError("ASI1 returned an oversized response. Please retry.")
+            result = json.loads(raw)
+            content = result["choices"][0]["message"]["content"]
         if not isinstance(content, str):
             raise ValueError("No content")
     except ASIError:

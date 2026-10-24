@@ -38,10 +38,10 @@ class ASITests(unittest.TestCase):
     def test_honors_injected_hosted_api_base_url(self):
         data = {"action": "status", "category": "unknown", "priority": "normal"}
         with patch.dict(os.environ, {"ASI1_API_KEY": "hosted-quota-key", "ASI1_BASE_URL": "https://hosted.example/v1/"}), \
-             patch("eventrelay.asi.urlopen", return_value=response(data)) as call:
+             patch("eventrelay.asi._sdk_completion", return_value=json.dumps(data)) as call:
             extract_intent("Show the current status")
-        self.assertEqual(call.call_args.args[0].full_url, "https://hosted.example/v1/chat/completions")
-        self.assertEqual(call.call_args.args[0].get_header("Authorization"), "Bearer hosted-quota-key")
+        self.assertEqual(call.call_args.args[2], "https://hosted.example/v1")
+        self.assertEqual(call.call_args.args[1], "hosted-quota-key")
 
     def test_refuses_insecure_api_base_url(self):
         with patch.dict(os.environ, {"ASI1_API_KEY": "test-key", "ASI1_BASE_URL": "http://untrusted.example/v1"}), \

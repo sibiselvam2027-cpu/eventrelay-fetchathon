@@ -185,6 +185,24 @@ class ConversationService:
                 "card": {"kind": "form", "payload": {"title": "Clarify the event issue", "fields": fields,
                     "submit_cta": {"label": "Report issue", "selection": {"action": "report", "clarification_id": pending["request_id"]}}}}}
 
+    def guided_report(self, actor, text, request_id=None):
+        """Start a fresh explicit form after AI failure, without dispatching.
+
+        Known fields from an older pending report must not silently select the
+        category or location for this new manual report.
+        """
+        if not isinstance(actor, str) or not actor or len(actor) > 200:
+            return {"text": "The caller identity is missing.", "offers": []}
+        summary = text.strip()[:1000] if isinstance(text, str) else "Event issue"
+        pending = {"summary": summary or "Event issue", "category": "unknown",
+                   "location": None, "priority": "normal",
+                   "request_id": request_id or "guided_" + secrets.token_hex(12)}
+        response = self._clarify(actor, self._state(actor), pending)
+        response["text"] = ("AI service unavailable. Choose the category and location to continue in manual guided mode. "
+                            "No ASI reasoning was used for this report. " + response["text"])
+        response["manual_guided"] = True
+        return response
+
     def handle(self, actor, text, intent=None, request_id=None):
         if not isinstance(actor, str) or not actor or len(actor) > 200:
             return {"text": "The caller identity is missing.", "offers": []}

@@ -34,8 +34,12 @@ Server log timestamps were treated as UTC and converted to Asia/Kolkata for the 
 
 ## ASI:One entry and submission evidence
 
-Open the Coordinator profile above and use **Chat with Agent** to enter the ASI:One conversation. The intended user interface is ASI:One, including native clarification, progress, and confirmation cards.
+**[Open EventRelay Coordinator in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu).** This is the entry URL observed during live testing. The intended user interface is ASI:One, including native clarification, progress, and confirmation cards.
 
-Cloud startup and registration are verified here. A successful ASI:One workflow, public shared-chat URL, logged-out profile access, and demo video must be verified and recorded separately. This document does not treat registration alone as proof of ASI discovery or completed workflow execution. No unverified ASI deep link has been invented.
+At approximately **15:40 IST**, ASI:One reached the deployed coordinator and displayed its actual agent response. That response reported **ASI1 authentication failed**. The ACP request/reply path is therefore observed, while natural-language routing and the complete issue lifecycle remain unverified. Subsequent ASI:One frontend 503/504 errors affected websocket/history access and follow-up messages stalled. The latest SDK-client/configuration changes remain under verification; this record does not claim that authentication has been repaired.
+
+A successful complete ASI:One workflow, public shared-chat URL, logged-out profile access, and demo video must still be verified separately. Registration, startup, and an error reply are distinct from a completed workflow.
+
+The latest source adds manual guided-form recovery inside ASI:One when ASI1 fails. The form requires a user-supplied category and location before dispatch; it does not represent successful LLM reasoning. Its live rendering and the revised client remain pending verification.
 
 The supplied event, crew identities, staff decisions, and physical work remain explicitly labelled demonstration data. Hosted agent execution and inter-agent messages are separate from any claim that real event staff were contacted or physical work occurred.

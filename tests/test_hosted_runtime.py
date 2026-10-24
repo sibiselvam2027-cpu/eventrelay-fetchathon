@@ -7,6 +7,8 @@ from uagents_core.contrib.protocols.chat import ChatMessage, TextContent
 from eventrelay.fetch_agents import IssueOffer, VendorDecision
 from eventrelay.hosted_runtime import HostedTransport, TRANSPORT_KEY, attach
 from eventrelay.hosted_state import open_hosted_service
+from eventrelay.asi import ASIError
+from eventrelay.fetch_agents import _actor
 
 
 class MemoryStorage:
@@ -195,6 +197,52 @@ class HostedRuntimeTests(unittest.TestCase):
         with patch("eventrelay.hosted_runtime.open_hosted_service", side_effect=AssertionError("No state access")):
             immediate(callback(self.agent("coordinator"), VendorDecision)(ctx, "attacker", decision))
         self.assertFalse(ctx.sent)
+
+    def test_asi_failure_creates_only_fresh_manual_form_until_user_submits(self):
+        storage = MemoryStorage()
+        actor = _actor("reporter_sender", "original-session", {}, set())
+        session = open_hosted_service(storage)
+        try:
+            # Simulate an older partially completed report. Its known category
+            # must not select the category of this new report after AI failure.
+            session.service.handle(actor, "Old cleanup issue", intent={
+                "action": "report", "summary": "Old cleanup issue", "category": "cleanup"},
+                request_id="old-pending")
+            session.checkpoint()
+        finally:
+            session.close()
+        os.environ["ASI1_API_KEY"] = "unit-test-key"
+        async def fail_ai(*args, **kwargs):
+            raise ASIError("Authentication failed")
+        message = ChatMessage(content=[TextContent(type="text", text="The drinking-water bottles have run out in the Dining Hall")])
+        ctx = HostContext(storage)
+        with patch("eventrelay.hosted_runtime.extract_intent_async", new=fail_ai):
+            immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
+        self.assertFalse(any(isinstance(item, IssueOffer) for _, item in ctx.sent))
+        reply = next(item for _, item in ctx.sent if isinstance(item, ChatMessage))
+        self.assertIn("manual guided mode", reply.text())
+        session = open_hosted_service(storage)
+        try:
+            self.assertEqual([], session.store.list_issues("wedding-demo"))
+            pending = session.service.context(actor)["pending_report"]
+            self.assertEqual("unknown", pending["category"])
+            self.assertIsNone(pending["location"])
+            self.assertEqual(str(message.msg_id), pending["request_id"])
+        finally:
+            session.close()
+        selection = {"action": "report", "category": "drinking_water", "location": "Dining Hall",
+                     "clarification_id": str(message.msg_id)}
+        submit = ChatMessage(content=[TextContent(type="text", text=json.dumps(selection))])
+        ctx = HostContext(storage)
+        immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", submit))
+        session = open_hosted_service(storage)
+        try:
+            issues = session.store.list_issues("wedding-demo")
+            self.assertEqual(1, len(issues))
+            self.assertEqual("drinking_water", issues[0]["category"])
+            self.assertEqual("Dining Hall", issues[0]["location"])
+        finally:
+            session.close()
 
 
 if __name__ == "__main__":

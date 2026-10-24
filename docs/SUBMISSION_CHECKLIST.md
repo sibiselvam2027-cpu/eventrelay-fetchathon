@@ -5,33 +5,40 @@
 ## Verified code evidence
 
 - [x] Public repository: [sibiselvam2027-cpu/eventrelay-fetchathon](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon).
-- [x] Published commit verified: `6a67685ed784b8dfa88aa67da31facddeb13c133`.
+- [x] Latest CI-verified published commit: `1a2297db3d45e9799fd0b34bb28e92a14ec8ce1b`.
 - [x] Initial local verification: **65 tests passed** before publication.
-- [x] Current source fixes: **68 tests passed locally**. The updated commit needs its own CI result.
-- [x] GitHub Actions passed for that exact commit: [Verify EventRelay, run 1](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40083719828).
-- [x] CI job logs independently confirm **65 tests — OK**. The job also passed hosted-project build/compile and the complete synthetic-workflow checks. [CI job](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40083719828/job/120842284947)
+- [x] Published source fixes: **68 tests passed locally and in CI**.
+- [x] Final SDK-client/guided-recovery source: **69 local tests passed**; all five hosted projects rebuilt and compiled. CI for this final revision is pending.
+- [x] GitHub Actions passed for that exact commit: [Verify EventRelay](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40084970945).
+- [x] CI job logs independently confirm **68 tests — OK**. The job also passed hosted-project build/compile and the complete synthetic-workflow checks. [CI job](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40084970945/job/120845928740)
 
-The CI run completed at **15:23:31 IST on 24 October 2026**. A later source commit requires its own CI result; the result above does not verify later changes.
+The CI run completed at **15:42:33 IST on 24 October 2026**. A subsequent ASI SDK client revision is under verification; a later source commit requires its own CI result.
 
-## Live hosted deployment — pending until verified
+## Live hosted deployment
 
 All five roles must run as Agentverse Hosted Agents. ASI:One is the sole product interface. The implementation uses direct uAgents/ACP and typed messages, with persistent Agent Storage.
 
 | Hosted agent | Actual agent address | Public profile URL | Running and verified |
 |---|---|---|---|
-| Coordinator | `agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu` | Pending verification | Startup, Almanac registration, and interval logs observed; full flow pending |
-| Hospitality | `agent1qfrq6l9ta28f4xwn5twktttqns0fczgu3ueghkksrl900j6yl4v6ukxs3ng` | Pending verification | Identity created; full flow pending |
-| Audio | `agent1qga2l6uypaq0ks2sjl4e2jak650naa0dljznq5kxg34jfs2fsvjnq4da69d` | Pending verification | Identity created; full flow pending |
-| Facilities | `agent1qvxj23fgwdjncysveppxwmzx8yhx5rf9a6ssclxzk56ftj9gyfsgvxh8xkx` | Pending verification | Identity created; full flow pending |
-| Housekeeping | `agent1qgm0yx34j7qjcqnhjdpvftlwv295cdd0hlysrkqc0tp4zwxn70s0scfct3w` | Pending verification | Identity created; full flow pending |
+| Coordinator | `agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu` | Public access pending | Cloud startup, registration, intervals, and one ASI reply observed; full flow pending |
+| Hospitality | `agent1qfrq6l9ta28f4xwn5twktttqns0fczgu3ueghkksrl900j6yl4v6ukxs3ng` | Public access pending | Cloud startup and registration observed; full flow pending |
+| Audio | `agent1qga2l6uypaq0ks2sjl4e2jak650naa0dljznq5kxg34jfs2fsvjnq4da69d` | Public access pending | Cloud startup and registration observed; full flow pending |
+| Facilities | `agent1qvxj23fgwdjncysveppxwmzx8yhx5rf9a6ssclxzk56ftj9gyfsgvxh8xkx` | Public access pending | Cloud startup and registration observed; full flow pending |
+| Housekeeping | `agent1qgm0yx34j7qjcqnhjdpvftlwv295cdd0hlysrkqc0tp4zwxn70s0scfct3w` | Public access pending | Cloud startup and registration observed; full flow pending |
 
 - [x] Five hosted identities created and their public addresses recorded.
 
-- [ ] Deploy and start all five hosted agents; inspect their execution logs.
+- [x] Deploy and start all five hosted agents; retrieved cloud logs show successful starts and registration. See [LIVE_DEPLOYMENT.md](LIVE_DEPLOYMENT.md).
 - [ ] Configure their actual cross-agent addresses and verify message exchanges.
 - [ ] Configure ASI1 credentials in Agent Secrets; verify natural-language understanding without exposing the key.
 - [ ] Verify issue, offer, conversation, and audit state across separate hosted invocations.
 - [ ] Complete agent profiles and README information; verify ACP interaction and ASI:One discovery rather than assuming either from successful upload.
+
+- [x] ASI:One reached the deployed coordinator and displayed an actual agent reply at approximately 15:40 IST. [Observed direct entry](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu)
+
+That reply reported ASI1 authentication failure. Natural-language routing, successful resolution of that error, and the complete live workflow remain pending. Follow-up observation also encountered ASI:One frontend 503/504 errors and stalled sends.
+
+The latest source offers an explicitly labelled manual guided form inside ASI:One when ASI1 is unavailable. It creates no issue or offer until the user submits the required details. Live form rendering and the final client revision must still be verified; this fallback is not evidence that the LLM authentication problem is fixed.
 
 ## Complete ASI:One proof — pending
 

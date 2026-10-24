@@ -3,4 +3,4 @@ name = "eventrelay-coordinator"
 version = "0.1.0"
 description = "EventRelay coordinates event-day issues: clarify, offer, obtain crew acceptance, follow up, escalate, and require reporter-confirmed resolution in ASI:One."
 requires-python = ">=3.10,<3.14"
-dependencies = ["uagents==0.25.5", "uagents-core==0.4.12"]
+dependencies = ["uagents==0.25.5", "uagents-core==0.4.12", "openai"]

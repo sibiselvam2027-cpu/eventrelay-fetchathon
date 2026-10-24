@@ -42,7 +42,7 @@ def main():
             "except Exception:\n    import traceback\n    print(traceback.format_exc())\n    raise\n", encoding="utf-8")
         (target / "pyproject.toml").write_text(
             "[project]\n" + f'name = "eventrelay-{role}"\nversion = "0.1.0"\ndescription = "{DESCRIPTIONS[role]}"\n'
-            'requires-python = ">=3.10,<3.14"\ndependencies = ["uagents==0.25.5", "uagents-core==0.4.12"]\n', encoding="utf-8")
+            'requires-python = ">=3.10,<3.14"\ndependencies = ["uagents==0.25.5", "uagents-core==0.4.12", "openai"]\n', encoding="utf-8")
         example = "# Agentverse injects ASI1_API_KEY and ASI1_BASE_URL; omit empty overrides.\nASI1_MODEL=asi1\nEVENTRELAY_DEMO_MODE=1\nEVENTRELAY_COORDINATOR_ADDRESS=\nEVENTRELAY_HOSPITALITY_ADDRESS=\nEVENTRELAY_AUDIO_ADDRESS=\nEVENTRELAY_FACILITIES_ADDRESS=\nEVENTRELAY_HOUSEKEEPING_ADDRESS=\nEVENTRELAY_ORGANIZER_SENDERS=\nEVENTRELAY_STAFF_SENDERS={}\nEVENTRELAY_DEMO_DECISIONS={\"staff_arun\":\"decline\",\"staff_neha\":\"accept\",\"staff_ravi\":\"accept\",\"staff_sara\":\"accept\",\"staff_vikram\":\"accept\",\"staff_pooja\":\"accept\",\"staff_meena\":\"accept\",\"staff_kiran\":\"accept\"}\n"
         (target / ".env.example").write_text(example, encoding="utf-8")
         # AVCTL needs a local configuration file. This contains placeholders only;
