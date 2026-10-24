@@ -65,7 +65,8 @@ Keep demonstration people, configured responses, accelerated timers, and simulat
 - [x] Open the hosted coordinator's Agentverse profile, then **Testing → Manual Testing**.
 - [x] Complete the exposed chat protocol and native form/card callbacks through guided category/location entry, actual vendor decline/backup acceptance, progress, awaiting confirmation, same-ID reopening, and reporter-confirmed closure. Incident **ER-3CC6223A**, completed **17:55:05 IST**. [Sanitized proof](MANUAL_TESTING_PROOF.md)
 - [x] Keep the same issue and reporter session throughout; staff decisions and physical work are synthetic. The presenter never clicked Accept; the actual hospitality agent supplied its configured decisions.
-- [ ] Record a **3–5 minute video** of the tested alternative and the observed hosted result, using [DEMO.md](DEMO.md).
+- [x] Prepare a **4:27.17 narrated edited walkthrough** of actual Manual Testing screenshots: local deliverable `EventRelay-demo.mp4`, with script `EventRelay-narration.txt`. Audio/video decoding and the visual contact sheet were checked. This is **not a continuous live recording**; the demonstrated callbacks are genuine and physical work is synthetic.
+- [ ] Upload the finished local video and verify a publicly accessible video URL.
 - [x] Label this rehearsal **Agentverse Manual Testing**. ASI:One UI completion and public shared-chat evidence remain pending recovery.
 - [ ] Follow any further organizer submission instructions and retain the final receipt. A recommendation to use Manual Testing does not by itself prove that every original deliverable was waived.
 
@@ -74,7 +75,7 @@ Keep demonstration people, configured responses, accelerated timers, and simulat
 - [ ] Public repository URL and instructions to run/test the project.
 - [ ] Five actual Agentverse profile URLs and agent addresses.
 - [ ] Public ASI:One shared chat showing the complete primary workflow.
-- [ ] Accessible **3–5 minute demonstration video**, using [DEMO.md](DEMO.md).
+- [ ] Publicly accessible **3–5 minute demonstration video** — local 4:27.17 video is ready; public URL pending.
 - [ ] Brief problem, target users, and executable outcome description, using [COMPETITION.md](COMPETITION.md).
 - [ ] Explain buyer and pricing as hypotheses, using [BUSINESS_MODEL.md](BUSINESS_MODEL.md).
 - [ ] Enter every required link through the project-submission workflow and verify accessibility.
