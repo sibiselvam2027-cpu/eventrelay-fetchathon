@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 from uagents_core.contrib.protocols.chat import ChatMessage, TextContent
 from eventrelay.fetch_agents import IssueOffer, VendorDecision
-from eventrelay.hosted_runtime import HostedTransport, TRANSPORT_KEY, attach, _send
+from eventrelay.hosted_runtime import HostedTransport, TRANSPORT_KEY, attach, _send, _without_own_leading_mention
 from eventrelay.hosted_state import open_hosted_service
 from eventrelay.asi import ASIError
 from eventrelay.fetch_agents import _actor
@@ -129,6 +129,95 @@ class HostedRuntimeTests(unittest.TestCase):
         self.assertEqual([30, 30], ctx.network_timeouts)
         self.assertEqual([2.0, 4.0], budgets)
 
+    def test_address_normalization_preserves_foreign_body_and_json_mentions(self):
+        address = "agent_coordinator"
+        payload = json.dumps({"action": "start", "issue_id": "ER-1234ABCD", "expected_version": 7,
+                              "note": "Keep @agent_coordinator inside this JSON string."})
+        self.assertEqual(payload, _without_own_leading_mention("@" + address + "\n" + payload, address))
+        for original in ("@another_agent help", "@agent_coordinator_extra help",
+                         "The @agent_coordinator needs drinking water", payload):
+            with self.subTest(text=original):
+                self.assertEqual(original, _without_own_leading_mention(original, address))
+
+    def test_own_addressed_help_and_status_bypass_ai_without_reporting_an_issue(self):
+        os.environ["ASI1_API_KEY"] = "unit-test-key"
+        storage = MemoryStorage()
+        with patch("eventrelay.hosted_runtime.extract_intent_async", side_effect=AssertionError("No AI call for commands")) as parser:
+            for command in ("help", "status"):
+                ctx = HostContext(storage)
+                message = ChatMessage(content=[TextContent(type="text", text="@agent_coordinator " + command)])
+                immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
+                replies = [item for _, item in ctx.sent if isinstance(item, ChatMessage)]
+                self.assertEqual(1, len(replies))
+                self.assertNotIn("manual guided mode", replies[0].text())
+                self.assertNotIn("could not complete", replies[0].text())
+                self.assertFalse(any(isinstance(item, IssueOffer) for _, item in ctx.sent))
+            parser.assert_not_called()
+        session = open_hosted_service(storage)
+        try:
+            self.assertEqual([], session.store.list_issues("wedding-demo"))
+        finally:
+            session.close()
+
+    def test_own_addressed_native_json_keeps_full_handoff_and_confirmation_flow(self):
+        os.environ["ASI1_API_KEY"] = "unit-test-key"
+        with patch("eventrelay.hosted_runtime.extract_intent_async", side_effect=AssertionError("Native callbacks must bypass AI")) as parser:
+            self._hosted_report_to_closure(addressed=True)
+            parser.assert_not_called()
+
+    def test_done_and_reopen_colon_commands_bypass_ai_and_preserve_evidence(self):
+        os.environ["ASI1_API_KEY"] = "unit-test-key"
+        storage = MemoryStorage()
+        actor = _actor("reporter_sender", "original-session", {}, set())
+        session = open_hosted_service(storage)
+        try:
+            issue = session.service.handle(actor, "The microphone is silent", intent={
+                "action": "report", "category": "audio", "location": "Stage",
+                "summary": "The microphone is silent"}, request_id="colon-command-report")["issue"]
+            issue_id = issue["issue_id"]
+            accepted = session.service.staff_response(issue_id, "staff_ravi", "accept", issue["version"])["issue"]
+            session.store.start(issue_id, "staff_ravi", expected_version=accepted["version"])
+            session.checkpoint()
+        finally:
+            session.close()
+        completion = "Replaced the microphone cable: sound check completed."
+        rejection = "Still crackling: the first reported fix did not resolve it."
+        with patch("eventrelay.hosted_runtime.extract_intent_async", side_effect=AssertionError("Explicit evidence commands must bypass AI")) as parser:
+            for action, evidence in (("done", completion), ("reopen", rejection)):
+                message = ChatMessage(content=[TextContent(type="text", text=f"@agent_coordinator {action} {issue_id}: {evidence}")])
+                ctx = HostContext(storage)
+                immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
+                session = open_hosted_service(storage)
+                try:
+                    current = session.store.issue(issue_id)
+                    if action == "done":
+                        self.assertEqual("awaiting_confirmation", current["status"])
+                        self.assertEqual(completion, current["completion_note"])
+                    else:
+                        self.assertEqual("offered", current["status"])
+                        reopened = next(event for event in reversed(current["history"]) if event["event"] == "reopened")
+                        self.assertEqual(rejection, reopened["details"]["note"])
+                    self.assertEqual(1, len(session.store.list_issues("wedding-demo")))
+                finally:
+                    session.close()
+            parser.assert_not_called()
+
+    def test_colon_command_allowance_does_not_bypass_ai_for_foreign_or_unknown_text(self):
+        os.environ["ASI1_API_KEY"] = "unit-test-key"
+        examples = ["@another_agent done ER-1234ABCD: checked", "undo ER-1234ABCD: checked",
+                    "status ER-1234ABCD: checked", "done ER-invalid: checked", "done ER-1234ABCD:"]
+        received = []
+        async def interpret(text, context, **kwargs):
+            received.append(text)
+            return {"action": "unsupported"}
+        with patch("eventrelay.hosted_runtime.extract_intent_async", new=interpret):
+            for text in examples:
+                ctx = HostContext(MemoryStorage())
+                message = ChatMessage(content=[TextContent(type="text", text=text)])
+                immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
+                self.assertFalse(any(isinstance(item, IssueOffer) for _, item in ctx.sent))
+        self.assertEqual(examples, received)
+
     def test_hosted_report_decline_backup_and_accept_survive_new_invocations(self):
         self._hosted_report_to_closure()
 
@@ -137,10 +226,11 @@ class HostedRuntimeTests(unittest.TestCase):
         with patch.dict(os.environ, contaminated):
             self._hosted_report_to_closure()
 
-    def _hosted_report_to_closure(self):
+    def _hosted_report_to_closure(self, addressed=False):
         coordinator_storage, hospitality_storage = MemoryStorage(), MemoryStorage()
         coordinator = self.agent("coordinator")
-        report = ChatMessage(content=[TextContent(type="text", text=json.dumps({
+        prefix = "@agent_coordinator " if addressed else ""
+        report = ChatMessage(content=[TextContent(type="text", text=prefix + json.dumps({
             "action": "report", "category": "drinking_water", "location": "Dining Hall",
             "summary": "The drinking-water bottles are empty", "priority": "normal"}))])
         ctx = HostContext(coordinator_storage)
@@ -182,7 +272,7 @@ class HostedRuntimeTests(unittest.TestCase):
                 session.close()
             selection = {"action": action, "issue_id": first.issue_id,
                          "expected_version": version, "note": "Twenty drinking-water bottles refilled."}
-            message = ChatMessage(content=[TextContent(type="text", text=json.dumps(selection))])
+            message = ChatMessage(content=[TextContent(type="text", text=prefix + json.dumps(selection))])
             ctx = HostContext(coordinator_storage)
             immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
         session = open_hosted_service(coordinator_storage)
@@ -300,6 +390,43 @@ class HostedRuntimeTests(unittest.TestCase):
             session.close()
 
 
+    def test_own_addressed_guided_form_json_preserves_clarification_and_dispatches_once(self):
+        storage = MemoryStorage()
+        os.environ["ASI1_API_KEY"] = "unit-test-key"
+        message = ChatMessage(content=[TextContent(type="text", text="@agent_coordinator Water issue in the Dining Hall")])
+        async def fail_ai(*args, **kwargs):
+            raise ASIError("Service unavailable")
+        ctx = HostContext(storage)
+        with patch("eventrelay.hosted_runtime.extract_intent_async", new=fail_ai):
+            immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
+        self.assertFalse(any(isinstance(item, IssueOffer) for _, item in ctx.sent))
+        actor = _actor("reporter_sender", "original-session", {}, set())
+        session = open_hosted_service(storage)
+        try:
+            self.assertEqual([], session.store.list_issues("wedding-demo"))
+            pending = session.service.context(actor)["pending_report"]
+            self.assertEqual(str(message.msg_id), pending["request_id"])
+            self.assertEqual("Water issue in the Dining Hall", pending["summary"])
+        finally:
+            session.close()
+        selection = {"action": "report", "category": "drinking_water", "location": "Dining Hall",
+                     "clarification_id": str(message.msg_id)}
+        submit = ChatMessage(content=[TextContent(type="text", text="@agent_coordinator " + json.dumps(selection))])
+        ctx = HostContext(storage)
+        with patch("eventrelay.hosted_runtime.extract_intent_async", side_effect=AssertionError("Form JSON must bypass AI")) as parser:
+            immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", submit))
+            parser.assert_not_called()
+        self.assertEqual(1, sum(isinstance(item, IssueOffer) for _, item in ctx.sent))
+        session = open_hosted_service(storage)
+        try:
+            issues = session.store.list_issues("wedding-demo")
+            self.assertEqual(1, len(issues))
+            self.assertEqual("drinking_water", issues[0]["category"])
+            self.assertEqual("Dining Hall", issues[0]["location"])
+        finally:
+            session.close()
+
+
     def test_ack_and_llm_timeouts_still_return_manual_form_without_dispatch(self):
         os.environ["ASI1_API_KEY"] = "unit-test-key"
         observed = []
@@ -333,6 +460,21 @@ class HostedRuntimeTests(unittest.TestCase):
         self.assertIn("key_present=False", logs)
         self.assertIn("model=[custom]", logs)
         self.assertNotIn("private-value-in-wrong-setting", logs)
+
+    def test_asi_failure_logs_safe_reason_without_request_or_key(self):
+        os.environ["ASI1_API_KEY"] = "private-test-key-must-not-be-logged"
+        user_text = "Private event details must not be copied into diagnostics"
+        safe_reason = "The hosted ASI quota is rate limited or exhausted. Please retry later."
+        async def unavailable(*args, **kwargs):
+            raise ASIError(safe_reason)
+        ctx = HostContext(MemoryStorage())
+        message = ChatMessage(content=[TextContent(type="text", text=user_text)])
+        with patch("eventrelay.hosted_runtime.extract_intent_async", new=unavailable):
+            immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
+        logs = "\n".join(str(call.args[0]) for call in ctx.logger.warning.call_args_list)
+        self.assertIn("ASI intent unavailable: " + safe_reason, logs)
+        self.assertNotIn(user_text, logs)
+        self.assertNotIn(os.environ["ASI1_API_KEY"], logs)
 
 
 if __name__ == "__main__":

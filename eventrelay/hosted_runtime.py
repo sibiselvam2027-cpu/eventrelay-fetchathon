@@ -33,6 +33,23 @@ CATEGORY = {"hospitality": "drinking_water", "audio": "audio", "facilities": "po
 TRANSPORT_KEY = "eventrelay.transport.v1"
 
 
+def _without_own_leading_mention(text, address):
+    """Remove this recipient's routing prefix, never a sender/authority claim.
+
+    ASI can prefix both prose and native-card JSON with @<agent address>.
+    Only a complete leading mention of the actual runtime identity is removed;
+    foreign mentions, body mentions and JSON content remain untouched.
+    """
+    if not address:
+        return text
+    prefix = "@" + str(address)
+    if text.startswith(prefix):
+        remainder = text[len(prefix):]
+        if not remainder or remainder[0].isspace():
+            return remainder.lstrip()
+    return text
+
+
 def _setting(ctx, name, default=""):
     secrets = getattr(ctx, "secrets", None)
     value = secrets.get(name) if secrets is not None and hasattr(secrets, "get") else None
@@ -213,6 +230,7 @@ def attach(agent, role):
     async def receive_chat(ctx: Context, sender: str, msg: ChatMessage):
         await _send(ctx, sender, ChatAcknowledgement(acknowledged_msg_id=msg.msg_id), timeout=2.0)
         text = "\n".join(block.text for block in msg.content if isinstance(block, TextContent)).strip()
+        text = _without_own_leading_mention(text, agent.address)
         if not text:
             return
         try:
@@ -249,7 +267,11 @@ def attach(agent, role):
             except ValueError:
                 parsed = None
             intent = parsed if isinstance(parsed, dict) else None
-            explicit = re.fullmatch(r"(?:help|roster|tick)|(?:status|accept|decline|start|done|confirm|reopen)(?:\s+ER-[0-9A-F]{8}(?:\s+.*)?)?", text, re.IGNORECASE)
+            explicit = re.fullmatch(
+                r"(?:help|roster|tick)|"
+                r"(?:done|reopen)\s+ER-[0-9A-F]{8}:[ \t]*\S[^\r\n]*|"
+                r"(?:status|accept|decline|start|done|confirm|reopen)(?:\s+ER-[0-9A-F]{8}(?:\s+.*)?)?",
+                text, re.IGNORECASE)
             live = bool(os.environ.get("ASI1_API_KEY", "").strip())
             if intent is None and not explicit:
                 base = urlsplit(os.environ.get("ASI1_BASE_URL", "https://api.asi1.ai/v1"))
@@ -278,7 +300,10 @@ def attach(agent, role):
             finally:
                 session.close()
             await _deliver(ctx, response, outgoing, sender)
-        except ASIError:
+        except ASIError as exc:
+            # ASIError contains only application-authored safe messages (and an
+            # HTTP status number), never upstream bodies, headers or user text.
+            ctx.logger.warning("ASI intent unavailable: " + str(exc))
             if role != "coordinator":
                 await _send(ctx, sender, _chat_message({"text": "The AI service is unavailable. Use the coordinator's guided report form."}))
                 return
