@@ -1,6 +1,6 @@
 # EventRelay live Agentverse deployment
 
-**Latest primary UI proof:** the deployed 83-test revision completed a clean Audio/Stage ASI:One web issue, including reopening and reporter-confirmed closure, around **18:44 IST**. [Sanitized sequence and screenshot](ASI_WEB_PROOF.md). Public shared-chat access remains pending. The startup and earlier diagnostic history below retain their original time-scoped observations.
+**Latest primary UI proof:** the deployed 83-test revision completed a clean Audio/Stage ASI:One web issue, including reopening and reporter-confirmed closure, around **18:44 IST**. [Sanitized sequence and screenshot](ASI_WEB_PROOF.md). [Public shared-chat viewer](https://asi1.ai/shared-chat/69fc8518-55f8-4b17-bd88-59988ba627f7) is verified; follow ER-4DE240CA. The startup and earlier diagnostic history below retain their original time-scoped observations.
 
 Verified on **24 October 2026 at approximately 15:38 IST (10:08 UTC)** using `avctl hosting logs` against each deployed address. These are Agentverse-hosted deployments. They do not depend on a running local mailbox agent or a custom frontend.
 

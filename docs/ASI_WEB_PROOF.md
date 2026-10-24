@@ -25,7 +25,7 @@ A cropped final-state screenshot is retained as the separate local deliverable *
 - A repeated natural-language report sent as a new message created another distinct incident. Retry protection uses stable request IDs; semantically similar new reports are not automatically merged.
 - People, vendor decisions, progress, and physical work were synthetic. The vendor agent's acceptance was real hosted transport carrying a configured demonstration decision; no real worker contact or repair is claimed.
 - This proves the recorded primary audio workflow, including live intent extraction and same-ID reopening/closure. It does not establish every language/clarification case, guaranteed latency, or a real event outcome.
-- A **public ASI:One shared-chat URL remains pending**. A screenshot and this sanitized record do not substitute for that separate deliverable.
+- [The public ASI:One shared-chat viewer](https://asi1.ai/shared-chat/69fc8518-55f8-4b17-bd88-59988ba627f7) was created through ASI:One Share and opened successfully. Its transcript includes the complete ER-4DE240CA sequence. It also contains earlier synthetic debugging records; this is an evidence transcript, not a flawless edited demonstration. A separate anonymous browser check is not claimed.
 
 Use [QUICK_DEMO.md](QUICK_DEMO.md) for the current Audio/Stage rehearsal. Earlier water backup routing and complete native Manual Testing evidence remain separately recorded in [LIVE_WORKFLOW_PROOF.md](LIVE_WORKFLOW_PROOF.md) and [MANUAL_TESTING_PROOF.md](MANUAL_TESTING_PROOF.md).
 

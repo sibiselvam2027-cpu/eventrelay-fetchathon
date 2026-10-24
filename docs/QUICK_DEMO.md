@@ -2,9 +2,17 @@
 
 Use **one conversation** with [EventRelay Coordinator](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu). Keep EventRelay selected in **To** / retain its `@mention` for every message. This uses the synthetic wedding roster; staff decisions and physical work are simulated.
 
+## First-time test
+
+1. Sign in to ASI:One and open the coordinator link above. Start your own test conversation; the [public shared-chat evidence](https://asi1.ai/shared-chat/69fc8518-55f8-4b17-bd88-59988ba627f7) is for viewing the recorded demonstration.
+2. Check **To** above the message box. Select the actual **EventRelay Coordinator** result if it is missing; its handle starts with `agent1qw8wdau`. Keep that recipient/mention in subsequent messages.
+3. Send `help` once and wait for an actual EventRelay response. Then send `roster` to check current availability.
+4. For a read-only example, send `status ER-4DE240CA`. It should show the already-closed synthetic audio demonstration. This does not create a new task.
+5. To test the full workflow yourself, send the Audio/Stage report below once. Keep its returned issue ID and use the same conversation through confirmation. Closure belongs to the original reporter or configured organizer.
+
 **Current recommended scenario: Audio at Stage.** The previous audio rehearsal ER-4DE240CA closed, releasing its assigned worker. Water incident ER-11B37F67 remains open and its backup worker is occupied. Check current status/roster, then use the audio scenario below or continue an existing issue.
 
-A read-only Agentverse roster check at **18:47 IST on 24 October** confirmed **Ravi available**, Sara busy, and water backup Neha busy. Cleanup and power crews were available. This is a point-in-time check: send `roster` with the coordinator still selected before a fresh rehearsal and use the actual returned availability.
+A fresh ASI:One `help` test passed at **19:59 IST**. A subsequent read-only ASI:One roster check at **20:00 IST on 24 October** confirmed **Ravi available**, Sara busy, and water backup Neha busy. Cleanup and power crews were available. This is a point-in-time check: send `roster` with the coordinator still selected before a fresh rehearsal and use the actual returned availability.
 
 ## Report once, then follow the same issue
 

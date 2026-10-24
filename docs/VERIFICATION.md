@@ -1,5 +1,7 @@
 # Verification record
 
+**Current handoff:** [Public ASI:One shared workflow](https://asi1.ai/shared-chat/69fc8518-55f8-4b17-bd88-59988ba627f7) is created and its read-only viewer was verified. Follow ER-4DE240CA. Use [QUICK_DEMO.md](QUICK_DEMO.md) for a fresh test and [SUBMISSION_PACKET.md](SUBMISSION_PACKET.md) for the prepared submission assets. The team supplies the final video. No final submission has been sent. Older time-scoped diagnostics below remain historical evidence.
+
 **Current published source baseline: 83 tests passed locally and in [GitHub Actions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40095925245), source commit `3e96df2b4dde0fbede5e671ef53d6a2b1410c2b2`.** Hosted builds/compilation and the synthetic scenario also passed. A clean Audio/Stage ASI:One web incident completed live interpretation, actual vendor-agent acceptance, same-ID reopening, and reporter-confirmed closure around 18:44 IST. [Sanitized proof](ASI_WEB_PROOF.md). Public shared-chat access remains pending. The historical entries below retain earlier failures and their limits.
 
 Local verification on 24 October 2026 used Python 3.12.14, uAgents 0.25.5, uAgents Core 0.4.12 and Pydantic 2.14.1.

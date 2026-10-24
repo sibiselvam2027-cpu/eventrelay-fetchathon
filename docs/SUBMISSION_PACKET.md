@@ -1,42 +1,51 @@
-# EventRelay — submission packet preparation
+# EventRelay submission packet
 
-This packet is prepared for review. No project submission has been sent. Complete the live demonstration and missing evidence before presenting them as finished.
+**Prepared for review. No final project submission has been sent.** The team will provide the video separately. The PowerPoint and the verified public ASI:One shared chat are ready.
 
-## Project name
+## Project
 
-**EventRelay — accountable event-day coordination across vendor teams**
+**EventRelay — accountable coordination across event vendor teams**
 
-## Brief description
+EventRelay helps event planners, venues, and family coordinators handle problems during an event. A user reports an issue in ASI:One. The coordinator clarifies the category and location, offers the task to the responsible team, obtains explicit acceptance, follows up, escalates failed handoffs, and asks the reporter to confirm resolution or reopen the same issue. Four specialist agents handle hospitality and drinking water, audio, power and facilities, and housekeeping. Five direct uAgents run on Agentverse with ACP and native ASI:One forms and cards. The demonstrated Audio/Stage workflow includes reopening and reporter-confirmed closure. The prototype uses a synthetic wedding roster and simulated crew decisions and physical work.
 
-EventRelay is designed for Indian weddings, birthdays, and similar events where a family, planner, venue, caterer, AV crew, and housekeeping team must coordinate temporary responsibilities. A report such as “there is a water issue” may need clarification before anyone knows whether catering, cleanup, or facilities should respond.
+## Links for the official form
 
-Through ASI:One, the coordinator is designed to collect the issue type and location, offer work to an eligible vendor, record explicit acceptance, follow up, escalate failed handoffs, and ask the reporter to confirm resolution. Four hosted vendor agents represent hospitality, audio, facilities, and housekeeping. The coordinator is the fifth hosted agent. Direct uAgent messages carry vendor offers and decisions; ACP and native cards keep the primary user workflow in ASI:One.
-
-The intended executable outcome is a persistent issue record with an accountable accepted owner, recorded progress, and either reporter-confirmed closure or visible unresolved escalation. The demonstration event and staff are synthetic, and physical work is simulated. Current local/CI evidence and the remaining live verification gaps are documented in [VERIFICATION.md](VERIFICATION.md).
-
-## Evidence links
-
-| Item | Link or status |
+| Item | URL or status |
 |---|---|
-| Public code and run/test instructions | [GitHub repository](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) |
-| Direct agent entry | [EventRelay Coordinator in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu) |
-| Public shared chat proving the complete workflow | **Pending.** The direct entry link above is not a shared-chat URL. |
-| ASI:One primary web rehearsal | **Completed:** clean ER-4DE240CA used live ASI1 Audio/Stage interpretation, actual Ravi acceptance, native/text work actions, same-ID reopening/reacceptance, and original-reporter confirmed closure around 18:44 IST. [Sanitized proof](ASI_WEB_PROOF.md); a screenshot is retained locally. Delayed rendering and one stale-action warning occurred; public shared-chat URL remains pending. |
-| Recommended current demo | [Audio/Stage QUICK_DEMO.md](QUICK_DEMO.md), in one conversation with the coordinator @mention retained. Persistent open water work occupies hospitality capacity; do not clear or falsely close it. |
-| Demonstration video | **Ready locally:** `EventRelay-demo.mp4`, **4:27.17**, narrated edited walkthrough of actual Agentverse Manual Testing screenshots; **not a continuous live recording**. Audio/video decoding and visual contact-sheet checks passed. **Public video URL pending.** Separate script: `EventRelay-narration.txt`. |
-| Organizer-recommended alternative | **Completed:** Agentverse Manual Testing incident ER-3CC6223A verified native form/card callbacks, automatic vendor decline/acceptance, same-ID reopening and reporter-confirmed closure at 17:55:05 IST. [Sanitized proof](MANUAL_TESTING_PROOF.md). The underlying callbacks are genuine; crew decisions and physical work are synthetic. |
-| Hosted agent addresses and profiles | [LIVE_DEPLOYMENT.md](LIVE_DEPLOYMENT.md); logged-out access remains a separate check |
-| Synthetic live hosted workflow proof | [LIVE_WORKFLOW_PROOF.md](LIVE_WORKFLOW_PROOF.md): four categories closed, same-ID audio reopening, water backup routing, and one natural-language status lookup; full ASI:One UI still pending |
-| Business assumptions | [BUSINESS_MODEL.md](BUSINESS_MODEL.md) |
+| Public ASI:One workflow | [Verified shared-chat viewer](https://asi1.ai/shared-chat/69fc8518-55f8-4b17-bd88-59988ba627f7) |
+| GitHub | [Public source, setup and test instructions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) |
+| PowerPoint | [Product and agent use-case deck](EventRelay-pitch.pptx) |
+| Coordinator entry | [Start your own ASI:One test](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu) |
+| How to test | [QUICK_DEMO.md](QUICK_DEMO.md) |
+| Full web proof | [ER-4DE240CA, closed about 18:44 IST](ASI_WEB_PROOF.md) |
+| Video | **Team-provided. Add the final accessible 3–5 minute video URL.** |
 
-## Official submission workflow
+For the shared transcript, follow **ER-4DE240CA** from approximately **18:32–18:44 IST, 24 October 2026**. Earlier synthetic debugging cases are also present. The viewer is a real transcript with observed rendering delays and a stale-action warning, not a flawless recording. Staff decisions and repairs are simulated.
 
-Open the [Fetch-A-Thon dashboard](https://asi1.ai/festival/fetchathon3/dashboard?utm_source=fetchathon3), choose its **Project Submission Agent**, and follow its prompts. The [hackpack](https://www.fetch.ai/events/hackathons/fetch-a-thon-3/hackpack) documents code, public shared chat, profiles for submitted agents, video, and a problem/users/outcome description. Include agent names, addresses, run resources, and required badges in the relevant README information. Verify every link and the final acknowledgment.
+## All five submitted agent profiles
 
-The dashboard's exact current prompts could not be read through the public fetch: it redirected to a sign-in-paused page. No extra form fields or submission success are invented here.
+| Agent | Deployed address | Agentverse |
+|---|---|---|
+| EventRelay Coordinator | `agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu` | [Profile](https://agentverse.ai/agents/details/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu/profile) |
+| EventRelay Hospitality | `agent1qfrq6l9ta28f4xwn5twktttqns0fczgu3ueghkksrl900j6yl4v6ukxs3ng` | [Profile](https://agentverse.ai/agents/details/agent1qfrq6l9ta28f4xwn5twktttqns0fczgu3ueghkksrl900j6yl4v6ukxs3ng/profile) |
+| EventRelay Audio | `agent1qga2l6uypaq0ks2sjl4e2jak650naa0dljznq5kxg34jfs2fsvjnq4da69d` | [Profile](https://agentverse.ai/agents/details/agent1qga2l6uypaq0ks2sjl4e2jak650naa0dljznq5kxg34jfs2fsvjnq4da69d/profile) |
+| EventRelay Facilities | `agent1qvxj23fgwdjncysveppxwmzx8yhx5rf9a6ssclxzk56ftj9gyfsgvxh8xkx` | [Profile](https://agentverse.ai/agents/details/agent1qvxj23fgwdjncysveppxwmzx8yhx5rf9a6ssclxzk56ftj9gyfsgvxh8xkx/profile) |
+| EventRelay Housekeeping | `agent1qgm0yx34j7qjcqnhjdpvftlwv295cdd0hlysrkqc0tp4zwxn70s0scfct3w` | [Profile](https://agentverse.ai/agents/details/agent1qgm0yx34j7qjcqnhjdpvftlwv295cdd0hlysrkqc0tp4zwxn70s0scfct3w/profile) |
 
-## Timing and final check
+These are the actual deployed product identities. Registration and hosted message exchanges were verified. Independent signed-out accessibility of every Agentverse profile is not claimed.
 
-The public schedule lists 16:30 IST for final building/submission, followed by 17:50 closing and 18:00 event end. A later organizer announcement shared with the team extends submission to **11:59 PM IST on 24 October 2026**, reports ASI:One downtime, and recommends Agentverse **Agent Profile → Testing → Manual Testing**. The extension and guidance are attributed to that supplied announcement; its private screenshot/contact details are not republished. Manual Testing evidence is labelled separately from the later completed primary Audio/Stage ASI:One web workflow. Public shared-chat access remains pending. The recommendation is not treated as an undocumented waiver of all original deliverables.
+## Official form readback
 
-Before submitting, use [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) to distinguish passing code tests, hosted startup, ACP delivery, genuine agent replies, and the complete live workflow. No external messages or actual submission were performed while preparing this packet.
+The [Fetch-A-Thon dashboard](https://asi1.ai/festival/fetchathon3/dashboard?utm_source=fetchathon3) redirected to the [registered event dashboard](https://asi1.ai/events/a98e0318-dee7-4829-be64-297a3912decc). Its **Project Submission** button opened **Fetchathon 3 Project Submission**, `@fet3-submission`.
+
+The registered Team ID and Masters’ Union Gurugram location were validated. The agent reported three expected members and no existing project submission. The live form requires **Team Name, Project Name, Project Description, Your Name, Your Email, and PPT URL**. It labels GitHub URL and Video Demo URL optional.
+
+The team chose its registered Team ID as the team name. The actual ID, member details, email addresses, and private draft-chat identifiers are intentionally excluded from this public packet. The private form has the known project and contact details prepared. **Submit project has not been pressed.**
+
+The public [hackpack](https://www.fetch.ai/events/hackathons/fetch-a-thon-3/hackpack) still lists GitHub, a public ASI:One shared chat, Agentverse profiles, a short video, and a brief problem/users/outcome description. It does not list a PPT deliverable. Include the required links from the hackpack even where the live form labels them optional. The requested PPT addresses the live form requirement; its preparation does not establish a waiver of the team video.
+
+## Final review
+
+Add the final video URL, check each link in the reviewer's intended access mode, review the complete form, and submit through the official agent. Retain the final acknowledgment. No receipt is claimed before that action completes.
+
+According to the organizer announcement supplied to the team, the deadline is **11:59 PM IST on 24 October 2026**. The same announcement recommended Agentverse **Profile → Testing → Manual Testing** during ASI:One disruption. This is attributed to the supplied announcement, whose private screenshot/contact details are not republished.
