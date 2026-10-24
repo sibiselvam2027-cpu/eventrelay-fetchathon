@@ -14,7 +14,7 @@ EventRelay helps event planners, venues, and family coordinators handle problems
 |---|---|
 | Public ASI:One workflow | [Verified shared-chat viewer](https://asi1.ai/shared-chat/69fc8518-55f8-4b17-bd88-59988ba627f7) |
 | GitHub | [Public source, setup and test instructions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) |
-| PowerPoint | [Eight-slide product and agent use-case deck](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/raw/refs/heads/main/docs/EventRelay-pitch.pptx) |
+| PowerPoint | [Nine-slide product and agent use-case deck](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/raw/refs/heads/main/docs/EventRelay-pitch.pptx) |
 | Coordinator entry | [Start your own ASI:One test](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu) |
 | How to test | [QUICK_DEMO.md](QUICK_DEMO.md) |
 | Full web proof | [ER-4DE240CA, closed about 18:44 IST](ASI_WEB_PROOF.md) |
