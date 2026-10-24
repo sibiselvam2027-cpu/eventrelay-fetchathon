@@ -1,6 +1,6 @@
 # Verification record
 
-**Current published source baseline: 81 tests passed locally and in [GitHub Actions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40095406290), source commit `cdb6a99a68d4e2322e2ba9a10d8630c642ad3680`.** Hosted builds/compilation and the synthetic scenario also passed. Actual hosted rehearsals closed four synthetic service categories; native Manual Testing completed reopening and confirmation. ASI:One web help, persistent status, and native Start were subsequently observed, while the complete web sequence remains pending. The entries below preserve the verification history and its limits.
+**Current published source baseline: 83 tests passed locally and in [GitHub Actions](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40095925245), source commit `3e96df2b4dde0fbede5e671ef53d6a2b1410c2b2`.** Hosted builds/compilation and the synthetic scenario also passed. A clean Audio/Stage ASI:One web incident completed live interpretation, actual vendor-agent acceptance, same-ID reopening, and reporter-confirmed closure around 18:44 IST. [Sanitized proof](ASI_WEB_PROOF.md). Public shared-chat access remains pending. The historical entries below retain earlier failures and their limits.
 
 Local verification on 24 October 2026 used Python 3.12.14, uAgents 0.25.5, uAgents Core 0.4.12 and Pydantic 2.14.1.
 
@@ -75,3 +75,23 @@ Actual ASI:One messages included a leading `@<coordinator-address>` before comma
 The final source passed **81 tests locally and in [CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40095406290)**, with all five hosted builds/compilation and the synthetic scenario. Local verification ran in 4.12 seconds.
 
 At approximately **18:15 IST**, the deployed coordinator returned correct help through ASI:One, retrieved persistent incident **ER-69FE87CB** after a restart, and processed a native Start action returning **in progress**. These are partial web results. The full ASI:One completion/reopening/confirmation sequence, full natural-language report/clarification path, and public shared-chat evidence remain pending; no successful complete web workflow is inferred from a single button.
+
+## Additional ASI budget and safe failure diagnostics
+
+Source commit `3e96df2b4dde0fbede5e671ef53d6a2b1410c2b2` passed **83 tests locally and in [CI](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40095925245)**, including five hosted builds/compilation and the synthetic scenario. The SDK request timeout is 18 seconds inside a 20-second intent deadline; automatic SDK retries remain disabled. Safe diagnostics distinguish the known timeout/connection classes and validated numeric HTTP status codes. Upstream exception text, bodies, headers, credentials, and arbitrary class names are excluded. The coordinator was deployed at approximately 18:26 IST; no new live LLM-success claim follows from deployment alone.
+
+At approximately **18:28 IST**, Agentverse Manual Testing on that deployed revision sent **“show status of ER-A50BFBB4”** and received the actual closed water incident, owner Neha, and a native status card. No manual-guided/offline-parser prefix appeared. The `show` phrasing does not match the explicit command parser and therefore exercises the live ASI1 extraction path. This verifies the current API-backed status lookup independently of the earlier tests; it does not verify ASI:One web rendering or all report intents.
+
+## ASI:One bug recovery versus clean fresh report
+
+**Bug recovery:** ER-69FE87CB had the incorrect `help` summary from before routing-prefix normalization. After the fix, native Start returned in progress, native Report completed returned awaiting confirmation, and native Yes, resolved closed it at approximately **18:17 IST**. This proves the observed recovery/actions for that incident, not correct initial report creation or same-ID reopening in ASI:One.
+
+**Clean fresh attempt:** a new drinking-water report for Dining Hall created **ER-11B37F67** through the native guided form and reached Neha's vendor acceptance around **18:21 IST**. Start was submitted; later transport responses were delayed and the web view did not render the expected result. A status request also remained pending, and a reload showed a loading state around 18:26. No clean web completion, reopening, reporter-confirmed closure, or public shared chat is claimed from this attempt. Private room/session identifiers and account details are excluded.
+
+## Completed clean ASI:One primary audio workflow
+
+On the deployed 83-test revision, a new natural-language microphone report created **ER-4DE240CA**, with correct Audio/Stage fields and no manual/offline-parser label. The actual audio agent supplied Ravi's configured synthetic acceptance around 18:32. Native Start, a colon-note Done command, native Still a problem, same-ID reacceptance, another Start/Done pair, and the original reporter's native Yes, resolved completed the issue at approximately **18:44 IST**. [Exact observed sequence](ASI_WEB_PROOF.md). A separate closure screenshot is retained locally
+
+Web rendering was materially delayed. One duplicate old Done interaction produced a stale-action warning. A repeated natural-language report as a different new message created another incident; semantic duplicates are not universally merged. The primary verified flow concerns ER-4DE240CA only. People, vendor decisions, progress, and physical work remain synthetic. A public shared-chat link and final submission receipt are separate pending deliverables.
+
+Use [QUICK_DEMO.md](QUICK_DEMO.md) as the default Audio/Stage route. The interrupted ER-11B37F67 water issue remains open; the live roster is persistent and is not cleared to make a demonstration appear successful.

@@ -1,5 +1,7 @@
 # EventRelay live Agentverse deployment
 
+**Latest primary UI proof:** the deployed 83-test revision completed a clean Audio/Stage ASI:One web issue, including reopening and reporter-confirmed closure, around **18:44 IST**. [Sanitized sequence and screenshot](ASI_WEB_PROOF.md). Public shared-chat access remains pending. The startup and earlier diagnostic history below retain their original time-scoped observations.
+
 Verified on **24 October 2026 at approximately 15:38 IST (10:08 UTC)** using `avctl hosting logs` against each deployed address. These are Agentverse-hosted deployments. They do not depend on a running local mailbox agent or a custom frontend.
 
 **Later positive rehearsals:** water reached closure at 16:16:19 IST after primary decline and backup acceptance. Audio, power, and cleanup also reached closure by 16:25:07 IST; audio reopened and reaccepted under the same issue ID. Actual hosted vendor agents supplied their configured synthetic acceptance decisions. A plain-language status lookup returned the stored closed water incident. See [the sanitized live workflow proof](LIVE_WORKFLOW_PROOF.md). The full ASI:One UI workflow remains unverified.

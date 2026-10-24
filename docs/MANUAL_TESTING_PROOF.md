@@ -2,6 +2,8 @@
 
 **Completed: 24 October 2026, 17:55:05 IST (12:25:05 UTC).** The organizer-recommended **Agent Profile → Testing → Manual Testing** route completed synthetic wedding incident **ER-3CC6223A** with native form/card interactions.
 
+**Later evidence:** a separate clean primary Audio/Stage workflow completed through ASI:One web around 18:44 IST. [ASI_WEB_PROOF.md](ASI_WEB_PROOF.md). This document retains the earlier Manual Testing scope; a public shared-chat link remains pending.
+
 ## Observed sequence
 
 1. The coordinator returned its help response.
@@ -20,6 +22,6 @@ The hosted workflow completed through an actual Agentverse UI, including guided 
 
 ## Evidence boundaries
 
-People, configured staff decisions, progress updates, physical work, and the demonstration event were synthetic. No real crew contact or physical repair is claimed. This was **Agentverse Manual Testing**, not the ASI:One web interface. Full ASI:One web completion and a public ASI:One shared chat remain pending recovery. Video encoding is separate from this successful rehearsal.
+People, configured staff decisions, progress updates, physical work, and the demonstration event were synthetic. No real crew contact or physical repair is claimed. This was **Agentverse Manual Testing**, not the ASI:One web interface. The later primary web completion has its own record linked above; a public ASI:One shared chat remains pending. Video preparation is separate from this successful rehearsal.
 
 This sanitized record was checked against the retained manual-demo proof. Screenshots, the raw transcript, account details, organizer identity/contact information, credentials, and private session identifiers are excluded from this public document.
