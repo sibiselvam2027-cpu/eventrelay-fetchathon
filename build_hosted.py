@@ -61,7 +61,10 @@ def main():
                     continue
                 kept.append(line)
             env_path.write_text("\n".join(kept) + "\n", encoding="utf-8", newline="\n")
-        (target / "README.md").write_text(
+        readme_path = target / "README.md"
+        if readme_path.exists():
+            continue
+        readme_path.write_text(
             f"# EventRelay {role.title()}\n\n{DESCRIPTIONS[role]}\n\n"
             "![tag:innovationlab](https://img.shields.io/badge/innovationlab-3D8BD3)\n"
             "![tag:hackathon](https://img.shields.io/badge/hackathon-5F43F1)\n\n"

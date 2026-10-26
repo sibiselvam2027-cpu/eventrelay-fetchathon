@@ -165,6 +165,73 @@ class HostedRuntimeTests(unittest.TestCase):
             self._hosted_report_to_closure(addressed=True)
             parser.assert_not_called()
 
+    def test_natural_scope_questions_answer_without_ai_or_issue_mutation(self):
+        os.environ["ASI1_API_KEY"] = "unit-test-key"
+        storage = MemoryStorage()
+        actor = _actor("reporter_sender", "original-session", {}, set())
+        session = open_hosted_service(storage)
+        try:
+            session.service.handle(actor, "Water issue in the Dining Hall.", request_id="pending-water")
+            pending = session.service.context(actor)["pending_report"]
+            session.checkpoint()
+        finally:
+            session.close()
+        agent = self.agent("coordinator")
+        with patch("eventrelay.hosted_runtime.extract_intent_async", side_effect=AssertionError("No AI needed for scope")) as parser:
+            for question in ("What can you do?", "What services do you support?", "Which locations are supported?"):
+                ctx = HostContext(storage)
+                message = ChatMessage(content=[TextContent(type="text", text="@agent_coordinator " + question)])
+                immediate(callback(agent, ChatMessage)(ctx, "reporter_sender", message))
+                replies = [item for _, item in ctx.sent if isinstance(item, ChatMessage)]
+                self.assertEqual(1, len(replies))
+                self.assertIn("Stage, Dining Hall, Entrance, and Washrooms", replies[0].text())
+                self.assertNotIn("manual guided mode", replies[0].text())
+                self.assertFalse(any(isinstance(item, IssueOffer) for _, item in ctx.sent))
+            parser.assert_not_called()
+        session = open_hosted_service(storage)
+        try:
+            self.assertEqual(pending, session.service.context(actor)["pending_report"])
+            self.assertEqual([], session.store.list_issues("wedding-demo"))
+        finally:
+            session.close()
+
+    def test_process_questions_and_invalid_reference_bypass_ai_without_mutating_an_issue(self):
+        os.environ["ASI1_API_KEY"] = "unit-test-key"
+        storage = MemoryStorage()
+        actor = _actor("reporter_sender", "original-session", {}, set())
+        session = open_hosted_service(storage)
+        try:
+            issue = session.service.handle(actor, "The microphone is silent at the Stage.", intent={
+                "action": "report", "summary": "The microphone is silent at the Stage.",
+                "category": "audio", "location": "Stage"})["issue"]
+            session.store.acknowledge(issue["issue_id"], "staff_ravi")
+            before = session.store.complete(issue["issue_id"], "staff_ravi", "Synthetic crew reports a microphone test.")
+            session.checkpoint()
+        finally:
+            session.close()
+        questions = (
+            ("I've checked on site and the water supply is restored — how do I confirm the issue as resolved?", "same conversation"),
+            ("The crew hasn't responded — can you escalate it?", "exact ER-XXXXXXXX issue reference"),
+            ("What is the status of issue ER-10245?", "exactly eight hexadecimal characters"),
+        )
+        agent = self.agent("coordinator")
+        with patch("eventrelay.hosted_runtime.extract_intent_async", side_effect=AssertionError("No AI for safe guidance")) as parser:
+            for question, expected in questions:
+                ctx = HostContext(storage)
+                message = ChatMessage(content=[TextContent(type="text", text="@agent_coordinator " + question)])
+                immediate(callback(agent, ChatMessage)(ctx, "reporter_sender", message))
+                replies = [item for _, item in ctx.sent if isinstance(item, ChatMessage)]
+                self.assertEqual(1, len(replies))
+                self.assertIn(expected, replies[0].text())
+                self.assertNotIn("manual guided mode", replies[0].text())
+                self.assertFalse(any(isinstance(item, IssueOffer) for _, item in ctx.sent))
+            parser.assert_not_called()
+        session = open_hosted_service(storage)
+        try:
+            self.assertEqual([before], session.store.list_issues("wedding-demo"))
+        finally:
+            session.close()
+
     def test_done_and_reopen_colon_commands_bypass_ai_and_preserve_evidence(self):
         os.environ["ASI1_API_KEY"] = "unit-test-key"
         storage = MemoryStorage()
@@ -205,7 +272,7 @@ class HostedRuntimeTests(unittest.TestCase):
     def test_colon_command_allowance_does_not_bypass_ai_for_foreign_or_unknown_text(self):
         os.environ["ASI1_API_KEY"] = "unit-test-key"
         examples = ["@another_agent done ER-1234ABCD: checked", "undo ER-1234ABCD: checked",
-                    "status ER-1234ABCD: checked", "done ER-invalid: checked", "done ER-1234ABCD:"]
+                    "status ER-1234ABCD: checked", "done ER-1234ABCD:"]
         received = []
         async def interpret(text, context, **kwargs):
             received.append(text)

@@ -17,6 +17,78 @@ GROUPS = {"drinking_water": "hospitality", "audio": "audio", "power": "facilitie
 LABELS = {"drinking_water": "Drinking water", "audio": "Audio", "power": "Power / facilities", "cleanup": "Cleanup"}
 
 
+def descriptive_intent(text: str) -> dict | None:
+    """Answer bounded product and process questions without taking an action.
+
+    Capability questions match in full. Process questions need an explicit
+    instructional phrase; a claim that work is fixed never means confirmation.
+    """
+    if not isinstance(text, str) or len(text) > 8000:
+        return None
+    references = re.findall(r"(?<![\w-])ER-[A-Za-z0-9_-]*(?![\w-])", text, re.IGNORECASE)
+    if any(not re.fullmatch(r"ER-[0-9A-F]{8}", reference, re.IGNORECASE) for reference in references):
+        return {"action": "help", "help_topic": "issue_reference"}
+    if len(text) > 500:
+        return None
+    question = " ".join(text.casefold().split()).rstrip("?.!")
+    if re.fullmatch(r"ER-[0-9A-F]{8}", question, re.IGNORECASE):
+        return {"action": "status", "issue_id": question.upper()}
+    if re.fullmatch(
+            r"(?:(?:show|list)(?: me)?(?: the)?(?: current)?(?: status of)?(?: all)? open(?: event)? issues|"
+            r"what (?:is|is the|is the current) status of all open(?: event)? issues)", question):
+        return {"action": "list_open"}
+    if re.search(r"\b(?:how (?:do|can|should) i|how to) (?:confirm|close|mark)\b", question):
+        return {"action": "help", "help_topic": "confirmation"}
+    if re.search(r"\b(?:can (?:you|eventrelay)(?: please)?|how (?:do|can|should) i|how to) escalate\b", question):
+        if len(references) == 1:
+            return {"action": "status", "issue_id": references[0].upper()}
+        return {"action": "help", "help_topic": "escalation"}
+    patterns = (
+        r"(?:help|what is eventrelay|what does eventrelay do|tell me about eventrelay)",
+        r"what can (?:you|eventrelay) (?:do|help (?:me )?with)",
+        r"how (?:does eventrelay work|do i use eventrelay|can you help(?: me)?)",
+        r"(?:what|which) (?:services|capabilities|categories|issue categories|locations|areas) "
+        r"(?:do you|does eventrelay) (?:support|cover|have)",
+        r"(?:what|which) (?:are (?:your|the supported) (?:services|capabilities|categories|locations|areas)|"
+        r"(?:services|categories|locations|areas) are supported)",
+        r"(?:what|which) (?:kinds|types) of issues can (?:you|eventrelay) handle",
+        r"(?:what|which) issues can (?:you handle|i report)",
+        r"(?:where do you operate|where are you available|where can i report an issue)",
+        r"(?:list|show) (?:your|the|supported) (?:services|capabilities|categories|locations|areas)",
+    )
+    clauses = question.split(" and ")
+    if 1 <= len(clauses) <= 2 and all(
+            any(re.fullmatch(pattern, clause) for pattern in patterns) for clause in clauses):
+        return {"action": "help"}
+    return None
+
+
+def _clarification_summary(original, detail, text):
+    """Preserve the complaint and add distinct clarification within its limit."""
+    if not isinstance(original, str):
+        return original
+    original = original[:1000]
+    if not isinstance(detail, str) or not detail.strip():
+        return original
+    detail = detail.strip()
+    normalize = lambda value: " ".join(value.casefold().split()).strip(" .!?")
+    location_only = (
+        r"(?:(?:it(?:'s| is)|the location(?: is)?|location(?: is)?|we are)\s+)?"
+        r"(?:(?:at|in|near|by)\s+)?(?:the\s+)?"
+        r"(?:stage|dining hall|entrance|washrooms?|toilets?|food counter|entry|gate)"
+        r"(?:\s+(?:area|please))?"
+    )
+    if (normalize(detail) in normalize(original)
+            or re.fullmatch(location_only, normalize(detail))
+            or re.fullmatch(location_only, normalize(text))):
+        return original
+    separator = " Clarification: "
+    remaining = 1000 - len(original) - len(separator)
+    if remaining <= 0:
+        return original
+    return original + separator + detail[:remaining].rstrip()
+
+
 def local_intent(text: str) -> dict:
     """Transparent offline command parser; never presented as ASI reasoning."""
     try:
@@ -25,6 +97,9 @@ def local_intent(text: str) -> dict:
             return value
     except (ValueError, TypeError):
         pass
+    description = descriptive_intent(text)
+    if description is not None:
+        return description
     value = text.strip()
     low = value.casefold()
     issue = re.search(r"ER-[0-9A-F]{8}", value.upper())
@@ -46,7 +121,7 @@ def local_intent(text: str) -> dict:
         category = "drinking_water"
     elif any(term in low for term in ("spill", "cleanup", "cleaning", "housekeeping")):
         category = "cleanup"
-    elif any(term in low for term in ("electric", "power", "lighting", "leak", "facilities")):
+    elif any(term in low for term in ("electric", "power", "lighting", "facilities")):
         category = "power"
     elif any(term in low for term in ("microphone", "speaker", "audio", "sound", "mic ")) or low == "mic":
         category = "audio"
@@ -107,6 +182,25 @@ class ConversationService:
 
     def _can_view(self, actor, issue):
         return demo_mode() or actor in (ORGANIZER, issue["reporter_id"], issue["assigned_to"], issue["offered_to"])
+
+    def _open_overview(self, actor, notice=""):
+        visible = [issue for issue in self.store.list_issues(EVENT)
+                   if issue["status"] != "closed" and self._can_view(actor, issue)]
+        issues = [{"issue_id": issue["issue_id"], "category": issue["category"],
+                   "location": issue["location"], "status": issue["status"],
+                   "owner": issue["assigned_to_name"] or "Nobody has accepted yet"}
+                  for issue in visible[:20]]
+        lines = [notice] if notice else []
+        if demo_mode():
+            lines.append("DEMO: synthetic wedding, people, and physical work.")
+        if not issues:
+            lines.append("No open issues are visible to this conversation.")
+        else:
+            lines.append(f"Open issues visible to this conversation: showing {len(issues)} of {len(visible)}.")
+            lines.extend(f"{issue['issue_id']} · {LABELS[issue['category']]} · {issue['location']} · "
+                         f"{issue['status'].replace('_', ' ')} · Owner: {issue['owner']}"
+                         for issue in issues)
+        return {"text": "\n".join(lines), "issues": issues, "offers": []}
 
     def _staff_actor(self, actor, issue, supplied=None):
         expected = issue["offered_to"] or issue["assigned_to"]
@@ -219,8 +313,16 @@ class ConversationService:
         state = self._state(actor)
         action = intent.get("action", "report")
         try:
+            if action == "list_open":
+                return self._open_overview(actor)
             if action == "help" or action == "unsupported":
-                return {"text": "Describe an event issue with its location. Then use status, accept/decline (crew), start, done, and confirm/reopen (reporter). Supported services: drinking water, audio, cleanup, and power. Demo staff actions are labelled.", "offers": []}
+                if intent.get("help_topic") == "issue_reference":
+                    return {"text": "An issue reference must be ER- followed by exactly eight hexadecimal characters (0–9 and A–F). Copy the exact reference from your issue card, then send status followed by that reference. No issue was created or changed.", "offers": []}
+                if intent.get("help_topic") == "confirmation":
+                    return {"text": "First send status followed by the exact ER-XXXXXXXX reference from your issue card. Wait until the crew has reported completion and the state is awaiting confirmation. Then the original reporter, in the same conversation, can select Yes, resolved or send confirm followed by the issue reference. A configured organizer can also confirm. If the fix did not work, select Still a problem or send reopen followed by the reference. This question has not closed an issue.", "offers": []}
+                if intent.get("help_topic") == "escalation":
+                    return self._open_overview(actor, "Which issue needs attention? Send its exact ER-XXXXXXXX issue reference, or send status followed by the reference. This question has not applied an escalation.")
+                return {"text": "EventRelay coordinates event-day issues for drinking water, audio, cleanup, and power/facilities. Supported locations: Stage, Dining Hall, Entrance, and Washrooms. Describe the problem and location to report it. Track it with status; crew use accept/decline, start, and done. Only the original reporter or organizer can confirm resolution or reject the reported fix with reopen. Demo staff actions are labelled as simulated.", "offers": []}
             if action == "roster":
                 if not demo_mode() and actor != ORGANIZER:
                     raise StoreError("wrong_actor", "The full staff roster is available to the organizer only.")
@@ -239,8 +341,9 @@ class ConversationService:
                 for name in ("summary", "category", "location", "priority"):
                     value = intent.get(name)
                     if value is not None and value != "" and value != "unknown":
-                        # A short clarification should not overwrite the original complaint.
-                        if name != "summary" or not pending.get("summary"):
+                        if name == "summary" and pending.get("summary"):
+                            pending[name] = _clarification_summary(pending[name], value, text)
+                        else:
                             pending[name] = value
                 pending.setdefault("summary", text.strip())
                 pending.setdefault("priority", "normal")

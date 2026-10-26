@@ -5,12 +5,12 @@ Use **one conversation** with [EventRelay Coordinator](https://asi1.ai/ai/agent1
 ## First-time test
 
 1. Sign in to ASI:One and open the coordinator link above. Start your own test conversation; the [public shared-chat evidence](https://asi1.ai/shared-chat/69fc8518-55f8-4b17-bd88-59988ba627f7) is for viewing the recorded demonstration.
-2. Check **To** above the message box. Select the actual **EventRelay Coordinator** result if it is missing; its handle starts with `agent1qw8wdau`. Keep that recipient/mention in subsequent messages.
+2. Check **To** above the message box. Select the actual **EventRelay Coordinator** result if it is missing; its handle is `@eventrelay-coordinator` and its address starts with `agent1qw8wdau`. Keep that recipient/mention in subsequent messages.
 3. Send `help` once and wait for an actual EventRelay response. Then send `roster` to check current availability.
 4. For a read-only example, send `status ER-4DE240CA`. It should show the already-closed synthetic audio demonstration. This does not create a new task.
-5. To test the full workflow yourself, send the Audio/Stage report below once. Keep its returned issue ID and use the same conversation through confirmation. Closure belongs to the original reporter or configured organizer.
+5. Ask `Show me the current status of all open event issues` for a read-only overview of visible issue references, status and owner. To test the full workflow, choose a service with available crew, then send one report with its location. Keep its returned issue ID and use the same conversation through confirmation. Closure belongs to the original reporter or configured organizer.
 
-**Current recommended scenario: Audio at Stage.** The previous audio rehearsal ER-4DE240CA closed, releasing its assigned worker. Water incident ER-11B37F67 remains open and its backup worker is occupied. Check current status/roster, then use the audio scenario below or continue an existing issue.
+**Choose the scenario from the current roster.** The Audio/Stage script below is an example. Later rehearsals and evaluations may occupy either audio crew member or other categories. On 27 October a controlled Power/Entrance test used Pooja and closed as ER-02125351. Its closure released that reservation, but future availability can change. Existing accepted incidents retain their owners until the workflow advances; do not clear or falsely close them to make a test pass.
 
 A fresh ASI:One `help` test passed at **19:59 IST**. A subsequent read-only ASI:One roster check at **20:00 IST on 24 October** confirmed **Ravi available**, Sara busy, and water backup Neha busy. Cleanup and power crews were available. This is a point-in-time check: send `roster` with the coordinator still selected before a fresh rehearsal and use the actual returned availability.
 

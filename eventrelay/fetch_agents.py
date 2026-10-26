@@ -25,6 +25,7 @@ from uagents_core.contrib.protocols.chat import (
     ChatAcknowledgement, ChatMessage, MetadataContent, TextContent, chat_protocol_spec,
 )
 from eventrelay.asi import ASIError
+from eventrelay.router import descriptive_intent
 
 
 class IssueOffer(Model):
@@ -354,7 +355,7 @@ def configure(role: str, agents: dict[str, Agent], service=None):
                 except ValueError:
                     direct = None
                 explicit = re.fullmatch(r"(?:help|roster|tick)|(?:status|accept|decline|start|done|confirm|reopen)(?:\s+ER-[0-9A-F]{8}(?:\s+.*)?)?", text, re.IGNORECASE)
-                intent = direct if isinstance(direct, dict) else None
+                intent = direct if isinstance(direct, dict) else descriptive_intent(text)
                 live_key = bool(os.environ.get("ASI1_API_KEY", "").strip())
                 if intent is None and not explicit and live_key:
                     from eventrelay.asi import extract_intent_async

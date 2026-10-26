@@ -23,7 +23,7 @@ from eventrelay.fetch_agents import (
     IssueOffer, VendorCommand, VendorDecision, _actor, _chat_message, _staff_command,
 )
 from eventrelay.hosted_state import open_hosted_service
-from eventrelay.router import EVENT
+from eventrelay.router import EVENT, descriptive_intent
 
 
 ROLES = {"coordinator", "hospitality", "audio", "facilities", "housekeeping"}
@@ -268,7 +268,7 @@ def attach(agent, role):
                 parsed = json.loads(text)
             except ValueError:
                 parsed = None
-            intent = parsed if isinstance(parsed, dict) else None
+            intent = parsed if isinstance(parsed, dict) else descriptive_intent(text)
             explicit = re.fullmatch(
                 r"(?:help|roster|tick)|"
                 r"(?:done|reopen)\s+ER-[0-9A-F]{8}:[ \t]*\S[^\r\n]*|"

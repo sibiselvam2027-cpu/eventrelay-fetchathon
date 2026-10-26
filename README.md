@@ -5,7 +5,9 @@ EventRelay coordinates event-day problems across independent vendor teams. A fam
 ![tag:innovationlab](https://img.shields.io/badge/innovationlab-3D8BD3)
 ![tag:hackathon](https://img.shields.io/badge/hackathon-5F43F1)
 
-**[Try EventRelay in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu)** · [Public repository](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) · [83-test CI evidence](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/runs/40095925245)
+**[Try EventRelay in ASI:One](https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu)** · [Public repository](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon) · [CI results](https://github.com/sibiselvam2027-cpu/eventrelay-fetchathon/actions/workflows/tests.yml)
+
+**27 October 2026 update:** 102 local tests pass. The coordinator README now documents supported scope and examples. Direct capability, confirmation and escalation guidance handles common questions without an AI request. A read-only open-issue overview shows real references with existing visibility permissions; malformed references cannot create reports. A controlled facilities workflow reached reporter-confirmed closure after the update, and the original public demo issue remains closed. [Rating and evaluation review](docs/RATING_IMPROVEMENTS.md)
 
 **Organizer update shared with the team, 24 October:** the announcement reported ASI:One downtime, extended submission to **11:59 PM IST today**, and recommended **Agent Profile → Testing → Manual Testing** in Agentverse. This records the supplied announcement, not an independent service-wide availability measurement. A later clean ASI:One web workflow completed as documented below; [Public shared-chat evidence](https://asi1.ai/shared-chat/69fc8518-55f8-4b17-bd88-59988ba627f7) is now available.
 
@@ -17,7 +19,7 @@ EventRelay coordinates event-day problems across independent vendor teams. A fam
 
 **Complete primary ASI:One web workflow verified at approximately 18:44 IST:** a clean audio report created **ER-4DE240CA**, correctly interpreted Audio/Stage, reached actual vendor-agent acceptance by Ravi, progressed to completion, reopened under the same ID, and closed only after the original reporter's confirmation. The flow used native cards and text commands. Rendering delays and one stale-action warning occurred; physical work and vendor policies were synthetic. [Sanitized web proof](docs/ASI_WEB_PROOF.md)
 
-**Recommended demo: [Audio/Stage quick start](docs/QUICK_DEMO.md).** The live roster persists across rehearsals. An interrupted water incident remains open and occupies hospitality capacity, so the earlier water story is not the default fresh demo. Continue an existing incident or use the audio guide. [View the public ASI:One workflow](https://asi1.ai/shared-chat/69fc8518-55f8-4b17-bd88-59988ba627f7).
+**Start with the [availability and workflow guide](docs/QUICK_DEMO.md).** The live roster persists across rehearsals and evaluations. Send `roster` and ask for the open-issue overview before starting a new incident. Choose a service with available crew or continue an existing issue; unavailable capacity should escalate honestly. [View the public ASI:One workflow](https://asi1.ai/shared-chat/69fc8518-55f8-4b17-bd88-59988ba627f7).
 
 The latest code uses the documented OpenAI-compatible SDK client for ASI1 and provides a clearly labelled **manual guided form inside ASI:One** when ASI1 is unavailable. This recovery requires the user to supply the category and location; it does not claim successful AI reasoning. The fresh web attempt rendered and submitted that form before the issue was offered and accepted; this does not establish the later web steps or LLM extraction.
 

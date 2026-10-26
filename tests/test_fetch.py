@@ -203,6 +203,35 @@ class FetchTests(unittest.TestCase):
         parse.assert_not_awaited()
         self.assertEqual(service.handle.call_args.kwargs["intent"], selection)
 
+    def test_descriptive_and_process_questions_never_need_asi_or_dispatch(self):
+        from eventrelay.router import ConversationService
+        from eventrelay.store import EventStore
+        agents = {role: FakeAgent(role) for role in ("coordinator", "hospitality", "audio", "facilities", "housekeeping")}
+        root = Path(self.temporary.name)
+        store = EventStore(root / "events.db")
+        store.seed_demo()
+        service = ConversationService(root / "conversations.db", store)
+        settings = {"EVENTRELAY_TRANSPORT_DB": str(self.path), "EVENTRELAY_DEMO_MODE": "1",
+                    "EVENTRELAY_DEMO_DECISIONS": "{}", "EVENTRELAY_STAFF_SENDERS": "{}",
+                    "EVENTRELAY_ORGANIZER_SENDERS": "", "ASI1_API_KEY": "unit-test-key"}
+        questions = (("What can you do?", "Supported locations"),
+                     ("How do I confirm the issue as resolved?", "same conversation"),
+                     ("Can you escalate it?", "exact ER-XXXXXXXX issue reference"),
+                     ("status ER-10245", "exactly eight hexadecimal characters"))
+        with patch.dict(os.environ, settings), \
+             patch("eventrelay.asi.extract_intent_async", side_effect=AssertionError("No AI for guidance")) as parser:
+            configure("coordinator", agents, service=service)
+            for question, expected in questions:
+                ctx = FakeContext()
+                message = ChatMessage(content=[TextContent(type="text", text=question)])
+                run_immediate(handler(agents["coordinator"], ChatMessage)(ctx, "reporter", message))
+                replies = [item for _, item in ctx.sent if isinstance(item, ChatMessage)]
+                self.assertEqual(1, len(replies))
+                self.assertIn(expected, replies[0].text())
+                self.assertFalse(any(isinstance(item, IssueOffer) for _, item in ctx.sent))
+            parser.assert_not_called()
+        self.assertEqual([], store.list_issues("wedding-demo"))
+
     def _vendor(self, demo, decisions):
         agents = {role: FakeAgent(role) for role in ("coordinator", "hospitality", "audio", "facilities", "housekeeping")}
         settings = {"EVENTRELAY_TRANSPORT_DB": str(self.path), "EVENTRELAY_DEMO_MODE": demo,
