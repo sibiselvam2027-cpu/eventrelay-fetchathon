@@ -7,10 +7,10 @@ ROLES = ("coordinator", "hospitality", "audio", "facilities", "housekeeping")
 MODULES = ("__init__.py", "store.py", "router.py", "asi.py", "settings.py", "fetch_agents.py", "hosted_state.py", "hosted_runtime.py")
 DESCRIPTIONS = {
     "coordinator": "EventRelay coordinates event-day issues: clarify, offer, obtain crew acceptance, follow up, escalate, and require reporter-confirmed resolution in ASI:One.",
-    "hospitality": "EventRelay hospitality agent handles drinking-water crew offers and explicit staff decisions.",
-    "audio": "EventRelay audio agent handles microphone and speaker crew offers and explicit staff decisions.",
-    "facilities": "EventRelay facilities agent handles power and lighting crew offers and explicit staff decisions.",
-    "housekeeping": "EventRelay housekeeping agent handles spill and cleanup crew offers and explicit staff decisions.",
+    "hospitality": "Drinking-water guidance and Coordinator referral. Handles trusted refill offers and authenticated crew replies. Synthetic event demo.",
+    "audio": "Microphone/speaker guidance and Coordinator referral. Handles trusted audio offers and authenticated crew replies. Synthetic event demo.",
+    "facilities": "Power/lighting guidance and Coordinator referral. Handles trusted offers and authenticated crew replies. No safety diagnosis; synthetic demo.",
+    "housekeeping": "Spill/cleanup guidance and Coordinator referral. Handles trusted cleanup offers and authenticated crew replies. Physical work is simulated.",
 }
 
 
@@ -30,7 +30,7 @@ def main():
             text = text.replace("from .", "from ").replace("from eventrelay.", "from ")
             if name == "settings.py":
                 text = text.replace("ROOT = Path(__file__).resolve().parents[1]", "ROOT = Path('.')")
-            (target / name).write_text(text, encoding="utf-8")
+            (target / name).write_text(text, encoding="utf-8", newline="\n")
         (target / "agent.py").write_text(
             "# Agentverse supplies the hosted 'agent' instance.\n"
             "# Older hosted templates instead require the zero-argument Agent().\n"
@@ -39,10 +39,10 @@ def main():
             "try:\n    agent\nexcept NameError:\n    agent = Agent()\n\n"
             "try:\n"
             f"    attach(agent, role={role!r})\n"
-            "except Exception:\n    import traceback\n    print(traceback.format_exc())\n    raise\n", encoding="utf-8")
+            "except Exception:\n    import traceback\n    print(traceback.format_exc())\n    raise\n", encoding="utf-8", newline="\n")
         (target / "pyproject.toml").write_text(
             "[project]\n" + f'name = "eventrelay-{role}"\nversion = "0.1.0"\ndescription = "{DESCRIPTIONS[role]}"\n'
-            'requires-python = ">=3.10,<3.14"\ndependencies = ["uagents==0.25.5", "uagents-core==0.4.12", "openai"]\n', encoding="utf-8")
+            'requires-python = ">=3.10,<3.14"\ndependencies = ["uagents==0.25.5", "uagents-core==0.4.12", "openai"]\n', encoding="utf-8", newline="\n")
         example = "# Agentverse injects ASI1_API_KEY and ASI1_BASE_URL; omit empty overrides.\nASI1_MODEL=asi1\nEVENTRELAY_DEMO_MODE=1\nEVENTRELAY_COORDINATOR_ADDRESS=\nEVENTRELAY_HOSPITALITY_ADDRESS=\nEVENTRELAY_AUDIO_ADDRESS=\nEVENTRELAY_FACILITIES_ADDRESS=\nEVENTRELAY_HOUSEKEEPING_ADDRESS=\nEVENTRELAY_ORGANIZER_SENDERS=\nEVENTRELAY_STAFF_SENDERS={}\nEVENTRELAY_DEMO_DECISIONS={\"staff_arun\":\"decline\",\"staff_neha\":\"accept\",\"staff_ravi\":\"accept\",\"staff_sara\":\"accept\",\"staff_vikram\":\"accept\",\"staff_pooja\":\"accept\",\"staff_meena\":\"accept\",\"staff_kiran\":\"accept\"}\n"
         (target / ".env.example").write_text(example, encoding="utf-8", newline="\n")
         # AVCTL needs a local configuration file. This contains placeholders only;
@@ -72,7 +72,7 @@ def main():
             "Bundled people and physical work are explicitly simulated.\n\n"
             "Coordinator prompts: 'There is a water issue in the dining hall'; 'Drinking water has run out'; "
             "'Show status'; 'The problem is still not resolved'. Native cards guide clarification and confirmation.\n",
-            encoding="utf-8")
+            encoding="utf-8", newline="\n")
     print("Prepared five Hosted Agent projects under hosted/. No real credentials were copied.")
 
 

@@ -28,6 +28,151 @@ from eventrelay.asi import ASIError
 from eventrelay.router import descriptive_intent
 
 
+PUBLIC_COORDINATOR_URL = "https://asi1.ai/ai/agent1qw8wdau552av7vc7u0cgc4te3skntynvwkxay8244u995xcd67m32tjqmzu"
+SPECIALIST_GUIDES = {
+    "hospitality": (
+        "Hospitality", "drinking-water refill crew offers",
+        "Drinking water has run out in the Dining Hall. Please coordinate a refill crew.",
+        "A water spill belongs to Housekeeping; a leaking pipe needs organizer review. I do not book catering or order supplies.",
+    ),
+    "audio": (
+        "Audio", "microphone and speaker crew offers",
+        "The microphone has stopped working at the Stage. Please send the audio team.",
+        "Power, drinking-water and cleanup reports go through the Coordinator to the relevant specialist. I do not diagnose or repair audio equipment.",
+    ),
+    "facilities": (
+        "Facilities", "power and lighting crew offers",
+        "The lights have gone out at the Entrance. Please coordinate the facilities crew.",
+        "I do not diagnose electrical hazards, certify safety, operate equipment or repair plumbing. Audio, water and cleanup reports go through the Coordinator.",
+    ),
+    "housekeeping": (
+        "Housekeeping", "spill and cleanup crew offers",
+        "There is a water spill near the Washrooms. Please coordinate a cleanup crew.",
+        "Empty drinking-water supplies belong to Hospitality; a leaking pipe needs organizer review. I do not inspect hazards or certify hygiene.",
+    ),
+}
+
+
+def specialist_guidance(role: str, text: str) -> dict | None:
+    """Bounded, intent-specific public instructions; never a crew operation."""
+    if role not in SPECIALIST_GUIDES or not isinstance(text, str) or len(text) > 1000:
+        return None
+    value = text.strip()
+    if not value:
+        return None
+    try:
+        payload = json.loads(value)
+    except ValueError:
+        payload = None
+    report_json = False
+    if isinstance(payload, dict):
+        action = payload.get("action")
+        if not isinstance(action, str) or action not in {"help", "report"}:
+            return None
+        report_json = action == "report"
+        details = payload.get("summary") or payload.get("text") or ""
+        details = details if isinstance(details, str) else ""
+        for field in ("category", "location"):
+            if isinstance(payload.get(field), str):
+                details += " " + payload[field]
+    else:
+        # Commands remain behind the existing sender/offer authentication gate.
+        if re.match(r"^(?:accept|decline|start|done)\b", value, re.IGNORECASE):
+            return None
+        details = value
+    normalized = " ".join(details.casefold().split()).rstrip("?.!")
+    information = isinstance(payload, dict) or normalized in {
+        "help", "hi", "hello", "locations", "supported locations", "scope", "capabilities", "services"
+    } or bool(re.match(r"^(?:what|which|where|how|why|who|can|do|does|is|are|tell|explain|show|list|please (?:tell|explain|show|list))\b", normalized)
+              and re.search(r"\b(?:you|your|eventrelay|agent|specialist|report|contact|scope|categor(?:y|ies)|locations?|areas|services?|tasks?|issues?|requests?|support|crew|work|accept|decline|complete|confirm|private|inbox|stream|music|playback)\b", normalized))
+    information = information or bool(re.search(r"\bhow (?:do|can|should) i\b", normalized)
+                                      and re.search(r"\b(?:accept|decline|start|done|complete|verify|confirm|report|crew|offer|issue|eventrelay)\b", normalized))
+    incident = bool(re.search(r"\b(?:water|refill|bottles?|microphones?|speakers?|audio|sound|power|lights?|lighting|electric(?:al|ity)?|spills?|cleanup|cleaning|housekeeping|leaks?|trash|rubbish|garbage)\b", normalized))
+    if not information and not incident:
+        return None
+    name, scope, example, limits = SPECIALIST_GUIDES[role]
+    places = []
+    for canonical, pattern in (("Stage", r"\b(?:main[ _-]?)?stage\b"),
+                               ("Dining Hall", r"\bdining[ _-]?hall\b"),
+                               ("Entrance", r"\b(?:entrance|entry|gate)\b"),
+                               ("Washrooms", r"\b(?:washrooms?|toilets?)\b")):
+        match = re.search(pattern, normalized)
+        if match:
+            places.append((match.start(), canonical))
+    locations = [place for _, place in sorted(places)]
+    location = " near " + locations[0] if len(locations) == 1 else ""
+    spill = bool(re.search(r"\b(?:spill|spilled|wet floor|cleanup|cleaning|trash|garbage|rubbish)\b", normalized))
+    leak = bool(re.search(r"\b(?:leak|leaking|plumbing|pipe)\b", normalized))
+    refill = bool(re.search(r"\b(?:drinking[ _-]?water|refill|bottles?|dispenser)\b", normalized)) and not spill
+    problem = ("a water spill" if spill and "water" in normalized else "a spill/cleanup issue" if spill
+               else "a drinking-water refill" if refill else "a leaking pipe" if leak
+               else "a microphone issue" if "microphone" in normalized else "a speaker/audio issue" if re.search(r"\b(?:speaker|audio|sound)\b", normalized)
+               else "a power/lighting issue" if re.search(r"\b(?:power|light|lights|lighting|electric|electrical|electricity)\b", normalized)
+               else "a water issue" if "water" in normalized else "an event issue")
+    confirmation = bool(re.search(r"\b(?:confirm|close|resolved|cleaned|fixed|restored)\b", normalized))
+    status_question = bool(information and re.search(r"\b(?:status|verify|started|in progress|acknowledg\w*|actually)\b", normalized))
+    crew_question = bool(information and re.search(r"\b(?:accept|decline|start|done|complete|completion)\b", normalized))
+    location_question = normalized in {"locations", "supported locations"} or bool(
+        information and re.search(r"\b(?:which|what)\b.*\b(?:locations?|areas)\b|\bwhere\b.*\b(?:operate|cover|available)\b", normalized))
+    scope_question = bool(information and (
+        re.search(r"\b(?:tasks|capabilities|categories|services|scope|types|kinds)\b", normalized)
+        or re.match(r"^(?:why|who)\b", normalized)
+        or re.search(r"^(?:what|which)\b.*\b(?:issues|requests)\b.*\b(?:handle|coordinate|support)\b", normalized)))
+    if re.search(r"\b(?:private|inbox|secrets?|credentials|crew records)\b", normalized):
+        body = "I cannot disclose private issue, crew or inbox records. Check your own issue in your authorized Coordinator conversation using status ER-XXXXXXXX with the actual reference."
+    elif confirmation:
+        body = (f"I cannot determine whether {problem}{location} has been physically resolved from this public chat, or confirm it for the reporter. "
+                "Use your existing reference: status ER-XXXXXXXX in the original Coordinator conversation. "
+                "Only when its state is awaiting confirmation can the original reporter send confirm ER-XXXXXXXX or choose Yes, resolved. "
+                "If unresolved, use Still a problem. A configured organizer may also confirm.")
+    elif status_question:
+        body = (f"I cannot verify physical crew activity for {problem}{location} from public chat. "
+                "Use status ER-XXXXXXXX with your actual reference in the authorized Coordinator conversation. "
+                "A delivery acknowledgment only means receipt; accepted means a crew member agreed; in progress means the assigned crew reported starting. "
+                "None independently verifies on-site work.")
+    elif location_question:
+        body = "The four supported event locations are Stage, Dining Hall, Entrance and Washrooms. Include the relevant location when reporting through the Coordinator."
+    elif crew_question:
+        if re.search(r"\b(?:start|done|complete|completion)\b", normalized):
+            body = ('A mapped staff sender and a matching trusted offer are required. For progress, send JSON, for example '
+                    '`{"action":"start","issue_id":"ER-XXXXXXXX","expected_version":1}` or '
+                    '`{"action":"done","issue_id":"ER-XXXXXXXX","expected_version":1,"evidence":"Crew completion evidence"}`. '
+                    'Replace the placeholder ID and example version 1 with the offered ID and latest version from authorized Coordinator status. '
+                    'These are instructions only; no crew action was taken.')
+        else:
+            body = ("Only an authenticated staff sender with a matching trusted offer can respond. "
+                    "Use accept ER-XXXXXXXX or decline ER-XXXXXXXX, replacing the placeholder with the exact offered ID. "
+                    "The received offer's version is used and the Coordinator validates the decision. "
+                    "Claiming a crew name does not authenticate you. These instructions have not accepted or declined a job.")
+    elif role == "audio" and information and re.search(r"\b(?:stream|playback|playlist|music|dj|performer)\b", normalized):
+        body = ("I cannot stream music, control playback or book performers. A human AV crew operates equipment. "
+                "If you need an audio service person, describe the need and location to the Coordinator; it can check the configured event roster but cannot guarantee personnel.")
+    elif spill and leak:
+        where = " You mentioned " + " and ".join(locations) + "." if locations else ""
+        body = ("You described separate cleanup and leaking-pipe problems." + where + " Housekeeping handles the spill; I cannot provide plumbing repair. "
+                "Send the original message to the Coordinator, keeping each problem's location: record the cleanup separately and request organizer review for the leak. "
+                "No crew has been dispatched from this public chat.")
+    elif report_json or (incident and not scope_question) or re.search(r"\b(?:how|where)\b.*\breport\b", normalized):
+        if incident or report_json:
+            urgency = "Urgent request: " if re.search(r"\b(?:urgent|urgently|immediately|asap|right away)\b", normalized) else "You described "
+            body = urgency + problem + location + ". "
+            if len(locations) > 1:
+                body += "You mentioned " + " and ".join(locations) + "; keep each problem's location. "
+            if refill:
+                body += "Hospitality handles drinking-water refill; cleanup does not refill dispensers. "
+            elif leak:
+                body += "A leaking pipe needs organizer review; I cannot provide plumbing repair. "
+            elif spill:
+                body += "Housekeeping handles spill and cleanup coordination. "
+            body += "Status in this specialist chat: not dispatched; no issue was created. Copy your original problem and location into the Coordinator chat to request a roster-based offer."
+        else:
+            body = "Report the problem and its location to the Coordinator. For example: " + example
+    else:
+        body = limits + " New event problems are reported through the Coordinator; authorized crew replies require a matching trusted offer."
+    return {"text": (f"EventRelay {name} handles {scope}.\n{body}\n"
+                     f"Coordinator: {PUBLIC_COORDINATOR_URL}\n"
+                     "Synthetic event/crew demo; physical work is simulated. I have not forwarded this message."), "offers": []}
+
 class IssueOffer(Model):
     offer_id: str
     issue_id: str
@@ -348,6 +493,11 @@ def configure(role: str, agents: dict[str, Agent], service=None):
         if not text:
             return
         try:
+            if role != "coordinator":
+                guidance = specialist_guidance(role, text)
+                if guidance is not None:
+                    await ctx.send(sender, _chat_message(guidance))
+                    return
             if role == "coordinator":
                 actor = _actor(sender, ctx.session, staff_senders, organizer_senders)
                 try:
@@ -369,7 +519,8 @@ def configure(role: str, agents: dict[str, Agent], service=None):
             if not staff_id:
                 await ctx.send(sender, _chat_message({"text": (
                     f"EventRelay {role} receives staff offers. This chat is not registered "
-                    "as a staff identity. Report issues through EventRelay Coordinator."
+                    "as a staff identity. No crew action was taken. Report the original problem and location "
+                    f"through EventRelay Coordinator: {PUBLIC_COORDINATOR_URL}"
                 )}))
                 return
             command = _staff_command(text)

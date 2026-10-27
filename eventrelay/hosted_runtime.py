@@ -21,8 +21,9 @@ from uagents_core.contrib.protocols.chat import (
 from eventrelay.asi import ASIError, extract_intent_async
 from eventrelay.fetch_agents import (
     IssueOffer, VendorCommand, VendorDecision, _actor, _chat_message, _staff_command,
+    PUBLIC_COORDINATOR_URL, specialist_guidance,
 )
-from eventrelay.hosted_state import open_hosted_service
+from eventrelay.hosted_state import HostedStateError, open_hosted_service
 from eventrelay.router import EVENT, descriptive_intent
 
 
@@ -94,6 +95,10 @@ class HostedTransport:
         self.state = json.loads(raw) if isinstance(raw, str) else json.loads(json.dumps(raw or {}))
         for key in ("origins", "offers", "inbox"):
             self.state.setdefault(key, {})
+        # Treat defaults as a read, but retain a baseline before real migrations
+        # so CRLF cleanup is saved once. A no-op save must not flush a backend's
+        # cached whole storage dictionary over another invocation's update.
+        self._saved_state = json.loads(json.dumps(self.state))
         # Migrate only formatting around persisted public peer addresses. Old
         # Windows .env secrets could already have written a trailing CR into
         # the outbox; preserve every issue, offer, version and processing flag.
@@ -106,7 +111,12 @@ class HostedTransport:
                 origin["recipient"] = origin["recipient"].strip()
 
     def save(self):
-        self.storage.set(TRANSPORT_KEY, self.state)
+        if self.state == self._saved_state:
+            return False
+        snapshot = json.loads(json.dumps(self.state))
+        self.storage.set(TRANSPORT_KEY, snapshot)
+        self._saved_state = json.loads(json.dumps(snapshot))
+        return True
 
     def capture(self, response, actor, recipient, session, addresses):
         issues = ([response["issue"]] if response.get("issue") else []) + response.get("issues", [])
@@ -175,11 +185,13 @@ class HostedTransport:
 
 
 def _finish(session, transport, response, actor, recipient, chat_session, addresses):
-    """No awaits: save outbox/origin and domain snapshot before any delivery."""
+    """Validate/save the domain snapshot before committing transport claims."""
     transport.capture(response, actor, recipient, chat_session, addresses)
     outgoing = transport.claim(response.get("offers", []))
-    transport.save()
+    # Capture/claim are invocation-local until the state checkpoint succeeds.
+    # A rejected stale update must not persist an offer or processing marker.
     session.checkpoint()
+    transport.save()
     return outgoing
 
 
@@ -205,6 +217,16 @@ async def _deliver(ctx, response, outgoing, recipient=None):
         await _send(ctx, recipient, _chat_message(response))
     if outgoing:
         await asyncio.gather(*(_send(ctx, destination, offer) for destination, offer in outgoing))
+
+
+async def _state_retry(ctx, recipient=None):
+    """A checkpoint failure never becomes an AI fallback or an offer send."""
+    ctx.logger.warning("Hosted state update could not be saved safely; refresh status before retrying.")
+    if recipient:
+        await _send(ctx, recipient, _chat_message({"text": (
+            "This event update could not be saved safely. Check status and retry from the latest card. "
+            "No new crew operation was sent by this request."
+        ), "offers": []}))
 
 
 def attach(agent, role):
@@ -236,13 +258,22 @@ def attach(agent, role):
         if not text:
             return
         try:
+            if role != "coordinator":
+                guidance = specialist_guidance(role, text)
+                if guidance is not None:
+                    await _send(ctx, sender, _chat_message(guidance))
+                    return
             _prepare(ctx)
             addresses = _addresses(ctx, agent, role)
             staff_senders = _mapping(ctx, "EVENTRELAY_STAFF_SENDERS")
             if role != "coordinator":
                 staff_id = staff_senders.get(sender)
                 if staff_id not in STAFF[role]:
-                    await _send(ctx, sender, _chat_message({"text": "This chat is not an authenticated crew identity. Report the issue through EventRelay Coordinator."}))
+                    await _send(ctx, sender, _chat_message({"text": (
+                        f"EventRelay {role.title()}: this chat is not an authenticated crew identity. "
+                        "No crew action was taken. Report the original problem and location "
+                        f"through EventRelay Coordinator: {PUBLIC_COORDINATOR_URL}"
+                    )}))
                     return
                 command = _staff_command(text)
                 transport = HostedTransport(ctx.storage)
@@ -304,6 +335,8 @@ def attach(agent, role):
             finally:
                 session.close()
             await _deliver(ctx, response, outgoing, sender)
+        except HostedStateError:
+            await _state_retry(ctx, sender)
         except ASIError as exc:
             # ASIError contains only application-authored safe messages (and an
             # HTTP status number), never upstream bodies, headers or user text.
@@ -311,12 +344,16 @@ def attach(agent, role):
             if role != "coordinator":
                 await _send(ctx, sender, _chat_message({"text": "The AI service is unavailable. Use the coordinator's guided report form."}))
                 return
-            recovery = open_hosted_service(ctx.storage)
             try:
-                response = recovery.service.guided_report(actor, text, request_id=str(msg.msg_id))
-                recovery.checkpoint()
-            finally:
-                recovery.close()
+                recovery = open_hosted_service(ctx.storage)
+                try:
+                    response = recovery.service.guided_report(actor, text, request_id=str(msg.msg_id))
+                    recovery.checkpoint()
+                finally:
+                    recovery.close()
+            except HostedStateError:
+                await _state_retry(ctx, sender)
+                return
             # This response has a fresh form, never an issue or staff offer.
             await _send(ctx, sender, _chat_message(response))
         except ValueError as exc:
@@ -335,6 +372,8 @@ def attach(agent, role):
             if not row or (msg.simulated and _setting(ctx, "EVENTRELAY_DEMO_MODE", "0") != "1"):
                 ctx.logger.warning("Rejected stale or untrusted hosted staff response.")
                 return
+            origin = transport.state["origins"].get(msg.issue_id)
+            rejected = False
             session = open_hosted_service(ctx.storage)
             try:
                 response = session.service.staff_response(msg.issue_id, msg.staff_id, msg.decision, msg.version)
@@ -342,10 +381,14 @@ def attach(agent, role):
                 if msg.simulated:
                     response = {**response, "text": "[Simulated staff response] " + response.get("text", "")}
                 outgoing = _finish(session, transport, response, None, None, ctx.session, _addresses(ctx, agent, role))
-                origin = transport.state["origins"].get(msg.issue_id)
+            except HostedStateError:
+                rejected = True
             finally:
                 session.close()
             recipient = origin["recipient"] if origin and origin["session"] == str(ctx.session) else None
+            if rejected:
+                await _state_retry(ctx, recipient)
+                return
             await _deliver(ctx, response, outgoing, recipient)
 
         stage("05 vendor decision handler registered")
@@ -357,15 +400,21 @@ def attach(agent, role):
             if not origin:
                 ctx.logger.warning("Rejected progress without a trusted staff offer.")
                 return
+            rejected = False
             session = open_hosted_service(ctx.storage)
             try:
                 intent = {"action": msg.action, "issue_id": msg.issue_id,
                           "expected_version": msg.version, "evidence": msg.evidence}
                 response = session.service.handle(msg.staff_id, json.dumps(intent), intent=intent)
                 outgoing = _finish(session, transport, response, None, None, ctx.session, _addresses(ctx, agent, role))
+            except HostedStateError:
+                rejected = True
             finally:
                 session.close()
             recipient = origin["recipient"] if origin["session"] == str(ctx.session) else None
+            if rejected:
+                await _state_retry(ctx, recipient)
+                return
             await _deliver(ctx, response, outgoing, recipient)
 
         stage("06 progress handler registered")
@@ -373,13 +422,19 @@ def attach(agent, role):
         async def sweep(ctx: Context):
             _prepare(ctx)
             session = open_hosted_service(ctx.storage)
+            rejected = False
             try:
                 session.store.tick(EVENT)
                 response = {"offers": session.service.pending_offers()}
                 transport = HostedTransport(ctx.storage)
                 outgoing = _finish(session, transport, response, None, None, ctx.session, _addresses(ctx, agent, role))
+            except HostedStateError:
+                rejected = True
             finally:
                 session.close()
+            if rejected:
+                await _state_retry(ctx)
+                return
             await _deliver(ctx, response, outgoing)
     else:
         @operations.on_message(IssueOffer)

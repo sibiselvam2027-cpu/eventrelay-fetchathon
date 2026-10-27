@@ -47,7 +47,13 @@ The coordinator and four category agents are separate **Agentverse Hosted Agents
 
 Demo vendor agents automatically return configured, labelled decisions: Arun declines and Neha accepts water offers; other configured crew accept when eligible. Demo users can inspect synthetic issues and simulate staff progress. Physical work is simulated. Real staff access requires trusted sender mappings; claiming a staff name in text grants no authority. Reporter confirmation remains restricted to the original reporter or configured organizer.
 
-Ask `Show me the current status of all open event issues` for an overview of up to 20 open issues visible to your identity, with real references, category, location, status and owner. Demo issues are synthetic and visible to demo users. Outside demo mode, the overview follows the existing reporter, assigned-crew and organizer permissions. The overview does not create issues, dispatch crew or change progress. For overdue work, select an actual reference and check its status and recorded escalation.
+Ask `Show me the current status of all open event issues` for an overview of up to 20 open issues visible to your identity, with real references, category, location, status and owner. Demo issues are synthetic and visible to demo users. Outside demo mode, the overview follows the existing reporter, assigned-crew and organizer permissions. The overview does not create issues, dispatch crew or change progress.
+
+## Escalation and organizer review
+
+Send `escalate ER-XXXXXXXX: crew has not responded` with your actual reference. Only the original reporter or a configured organizer can record this request, including in demo mode. It adds an escalation and activity record without cancelling an offer, changing the owner or marking work complete.
+
+If you ask for escalation without an issue reference, EventRelay records a separate `RV-XXXXXXXX` organizer-review request in your conversation. It asks for the incident reference or problem and location before linking anything; it never guesses which issue you mean. Use `my review requests` to see your requests. An actual configured organizer can use `organizer review queue` to see the aggregate queue. A review record does not mean a human received a notification. Asking how to escalate only explains the steps.
 
 Use the newest card after state changes. ASI:One responses can be delayed. If ASI1 fails, a labelled manual form requests category/location before dispatch. This is not emergency response, hazard diagnosis, real crew signup, multi-event management, WhatsApp, voice, payments or a guarantee of repair.
 

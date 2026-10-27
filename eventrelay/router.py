@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import secrets
@@ -17,11 +18,26 @@ GROUPS = {"drinking_water": "hospitality", "audio": "audio", "power": "facilitie
 LABELS = {"drinking_water": "Drinking water", "audio": "Audio", "power": "Power / facilities", "cleanup": "Cleanup"}
 
 
-def descriptive_intent(text: str) -> dict | None:
-    """Answer bounded product and process questions without taking an action.
+def _canonical_location(value):
+    """Normalize known venue aliases without accepting an unregistered place."""
+    if not isinstance(value, str):
+        return None
+    key = re.sub(r"[\s_-]+", " ", value.strip().casefold())
+    aliases = {
+        "stage": "Stage", "main stage": "Stage", "mainstage": "Stage",
+        "dining hall": "Dining Hall", "dininghall": "Dining Hall", "dining": "Dining Hall",
+        "food counter": "Dining Hall", "foodcounter": "Dining Hall",
+        "entrance": "Entrance", "entry": "Entrance", "gate": "Entrance",
+        "washrooms": "Washrooms", "washroom": "Washrooms", "toilets": "Washrooms", "toilet": "Washrooms",
+    }
+    return aliases.get(key, value.strip())
 
-    Capability questions match in full. Process questions need an explicit
-    instructional phrase; a claim that work is fixed never means confirmation.
+
+def descriptive_intent(text: str) -> dict | None:
+    """Recognize bounded guidance and explicit requests without guessing an issue.
+
+    Capability questions match in full and how-to questions remain read-only.
+    A claim that work is fixed never means confirmation.
     """
     if not isinstance(text, str) or len(text) > 8000:
         return None
@@ -31,6 +47,10 @@ def descriptive_intent(text: str) -> dict | None:
     if len(text) > 500:
         return None
     question = " ".join(text.casefold().split()).rstrip("?.!")
+    if re.fullmatch(r"(?:(?:show|list) )?my review requests", question):
+        return {"action": "my_review_requests"}
+    if re.fullmatch(r"(?:(?:show|list) )?organizer review queue", question):
+        return {"action": "organizer_review_queue"}
     if re.fullmatch(r"ER-[0-9A-F]{8}", question, re.IGNORECASE):
         return {"action": "status", "issue_id": question.upper()}
     if re.fullmatch(
@@ -39,10 +59,12 @@ def descriptive_intent(text: str) -> dict | None:
         return {"action": "list_open"}
     if re.search(r"\b(?:how (?:do|can|should) i|how to) (?:confirm|close|mark)\b", question):
         return {"action": "help", "help_topic": "confirmation"}
-    if re.search(r"\b(?:can (?:you|eventrelay)(?: please)?|how (?:do|can|should) i|how to) escalate\b", question):
-        if len(references) == 1:
-            return {"action": "status", "issue_id": references[0].upper()}
-        return {"action": "help", "help_topic": "escalation"}
+    if re.search(r"\b(?:how (?:do|can|should) i|how to) escalate\b", question):
+        return {"action": "help", "help_topic": "escalation_instructions"}
+    if (re.search(r"\bcan (?:you|eventrelay)(?: please)? escalate\b", question)
+            or re.match(r"^(?:please )?escalate\b", question)):
+        return {"action": "escalate", "issue_id": references[0].upper() if len(references) == 1 else None,
+                "note": text.strip()[:1000]}
     patterns = (
         r"(?:help|what is eventrelay|what does eventrelay do|tell me about eventrelay)",
         r"what can (?:you|eventrelay) (?:do|help (?:me )?with)",
@@ -75,7 +97,7 @@ def _clarification_summary(original, detail, text):
     location_only = (
         r"(?:(?:it(?:'s| is)|the location(?: is)?|location(?: is)?|we are)\s+)?"
         r"(?:(?:at|in|near|by)\s+)?(?:the\s+)?"
-        r"(?:stage|dining hall|entrance|washrooms?|toilets?|food counter|entry|gate)"
+        r"(?:(?:main[ _-]?)?stage|dining[ _-]?hall|entrance|washrooms?|toilets?|food counter|entry|gate)"
         r"(?:\s+(?:area|please))?"
     )
     if (normalize(detail) in normalize(original)
@@ -183,6 +205,78 @@ class ConversationService:
     def _can_view(self, actor, issue):
         return demo_mode() or actor in (ORGANIZER, issue["reporter_id"], issue["assigned_to"], issue["offered_to"])
 
+    @staticmethod
+    def _review_items(state, actor):
+        items = state.get("review_requests", [])
+        if not isinstance(items, list):
+            return []
+        return [dict(item) for item in items if isinstance(item, dict) and item.get("actor") == actor
+                and isinstance(item.get("review_id"), str) and re.fullmatch(r"RV-[0-9A-F]{8}", item["review_id"])
+                and item.get("status") == "queued"]
+
+    def _all_review_items(self):
+        with self._db() as db:
+            rows = db.execute("SELECT actor,state FROM conversations ORDER BY actor").fetchall()
+        return [item for row in rows for item in self._review_items(json.loads(row["state"]), row["actor"])]
+
+    @staticmethod
+    def _review_listing(items, title):
+        shown = [{key: item[key] for key in ("review_id", "actor", "note", "request_id", "status")}
+                 for item in items[:20]]
+        lines = [title]
+        if not shown:
+            lines.append("No queued organizer-review requests are available.")
+        else:
+            lines.append(f"Showing {len(shown)} of {len(items)} queued requests.")
+            lines.extend(f"{item['review_id']} · queued · {item['note']}" for item in shown)
+        return {"text": "\n".join(lines), "review_requests": shown, "offers": []}
+
+    def _queue_review(self, actor, state, note, request_id):
+        if not isinstance(note, str):
+            raise StoreError("invalid_request", "Include a short description for organizer review.")
+        note = note.strip()[:1000] or "Organizer review requested without an issue reference."
+        if request_id is not None and (not isinstance(request_id, str) or not request_id.strip() or len(request_id) > 200):
+            raise StoreError("invalid_request", "Invalid review request ID.")
+        request_id = request_id or "review_" + secrets.token_hex(12)
+        items = self._review_items(state, actor)
+        existing = next((item for item in items if item.get("request_id") == request_id), None)
+        if existing is not None:
+            if existing["note"] != note:
+                raise StoreError("idempotency_conflict", "This review request ID was already used with a different note.")
+            item = existing
+        else:
+            if len(items) >= 20:
+                raise StoreError("review_queue_full", "This conversation already has 20 queued review requests. Use my review requests to refer to an existing request.")
+            used = {item["review_id"] for item in self._all_review_items()}
+            for _ in range(8):
+                review_id = "RV-" + secrets.token_hex(4).upper()
+                if review_id not in used:
+                    break
+            else:
+                raise StoreError("review_id_unavailable", "A review reference could not be allocated. Please retry.")
+            item = {"review_id": review_id, "actor": actor, "note": note,
+                    "request_id": request_id, "status": "queued"}
+            state["review_requests"] = [*items, item]
+            self._save(actor, state)
+        context = " ".join(item["note"].casefold().replace("’", "'").split())
+        unresolved = bool(re.search(r"\b(?:unresolved|not resolved)\b", context))
+        unresponsive = bool(re.search(r"\b(?:unresponsive|hasn't responded|has not responded|haven't responded|have not responded|not responding|no response)\b", context))
+        if unresolved and unresponsive:
+            acknowledgement = "You reported that the problem is still unresolved and the crew has not responded."
+        elif unresolved:
+            acknowledgement = "You reported that the problem is still unresolved."
+        elif unresponsive:
+            acknowledgement = "You reported that the crew has not responded."
+        else:
+            acknowledgement = "Your request for organizer follow-up has been recorded."
+        lines = [f"Escalation request recorded for organizer review as {item['review_id']} (queued).",
+                 acknowledgement,
+                 "Send the exact ER-XXXXXXXX issue reference, or describe the problem and location. Include this RV reference with those details.",
+                 "No existing incident was changed. This action does not notify a human."]
+        if demo_mode():
+            lines.append("DEMO: synthetic event and crew.")
+        return {"text": "\n".join(lines), "review_request": dict(item), "offers": []}
+
     def _open_overview(self, actor, notice=""):
         visible = [issue for issue in self.store.list_issues(EVENT)
                    if issue["status"] != "closed" and self._can_view(actor, issue)]
@@ -236,7 +330,18 @@ class ConversationService:
         if issue["offered_to_name"]:
             lines.append(f"Offer sent to {issue['offered_to_name']}; acceptance is still pending.")
         if issue["escalated"]:
-            lines.append("Organizer attention required: " + str(issue["escalation_reason"]))
+            if issue["escalation_reason"] == "no_available_staff":
+                lines.append(f"No eligible configured {LABELS[issue['category']].lower()} crew is currently available. "
+                             "This issue is escalated for organizer attention; nobody has accepted the job yet. "
+                             "An organizer needs to review crew availability and arrange coverage. "
+                             "No crew dispatch or completed work is confirmed.")
+            elif issue["escalation_reason"] == "resolution_follow_up_overdue":
+                lines.append("Organizer attention required: the configured resolution follow-up deadline has passed. "
+                             "The assigned crew member remains responsible; completion is not confirmed.")
+            elif issue["escalation_reason"] == "organizer_review_requested":
+                lines.append("Organizer review has been requested for this issue. Crew ownership and deadlines remain unchanged; this record does not notify a human.")
+            else:
+                lines.append("Organizer attention required: this issue has a recorded escalation.")
         if issue["blocked_by"]:
             lines.append("Waiting for linked issue(s): " + ", ".join(issue["blocked_by"]))
         if status == "awaiting_confirmation":
@@ -255,6 +360,9 @@ class ConversationService:
         if status == "awaiting_confirmation":
             ctas.extend([{"label": "Yes, resolved", "selection": {**base, "action": "confirm"}, "primary": True},
                          {"label": "Still a problem", "selection": {**base, "action": "reopen", "note": "The reporter says the issue remains unresolved."}}])
+        if status not in {"closed", "awaiting_confirmation"}:
+            ctas.append({"label": "Request organizer review", "selection": {**base, "action": "escalate",
+                         "note": "The reporter requests organizer review of this unresolved issue."}})
         ctas.append({"label": "Refresh status", "selection": {"action": "status", "issue_id": issue["issue_id"]}})
         return {"text": "\n".join(lines), "issue": issue, "offers": self._offer(issue),
                 "card": {"kind": "detail", "payload": {"title": "EventRelay · " + issue["issue_id"],
@@ -306,6 +414,8 @@ class ConversationService:
         if not isinstance(intent, dict):
             return {"text": "Please describe the issue or choose an available action.", "offers": []}
         intent = dict(intent)
+        if "location" in intent:
+            intent["location"] = _canonical_location(intent["location"])
         if intent.get("version") is None and intent.get("expected_version") is not None:
             intent["version"] = intent["expected_version"]
         if not intent.get("note") and intent.get("evidence"):
@@ -313,6 +423,23 @@ class ConversationService:
         state = self._state(actor)
         action = intent.get("action", "report")
         try:
+            if action == "my_review_requests":
+                return self._review_listing(self._review_items(state, actor), "Your organizer-review requests")
+            if action == "organizer_review_queue":
+                if actor != ORGANIZER:
+                    raise StoreError("wrong_actor", "Only the configured organizer can view the organizer review queue.")
+                return self._review_listing(self._all_review_items(), "Organizer review queue")
+            if action == "escalate":
+                target = intent.get("issue_id")
+                if target is not None:
+                    if not isinstance(target, str) or not re.fullmatch(r"ER-[0-9A-F]{8}", target):
+                        raise StoreError("invalid_issue_reference", "Copy the exact ER- reference with eight hexadecimal characters from an issue card.")
+                    if not re.search(r"(?<![\w-])" + re.escape(target) + r"(?![\w-])", text, re.IGNORECASE):
+                        # Model output cannot select a last/visible issue that
+                        # was not actually referenced by the caller.
+                        return self._queue_review(actor, state, text, request_id)
+                else:
+                    return self._queue_review(actor, state, intent.get("note") or text, request_id)
             if action == "list_open":
                 return self._open_overview(actor)
             if action == "help" or action == "unsupported":
@@ -320,8 +447,8 @@ class ConversationService:
                     return {"text": "An issue reference must be ER- followed by exactly eight hexadecimal characters (0–9 and A–F). Copy the exact reference from your issue card, then send status followed by that reference. No issue was created or changed.", "offers": []}
                 if intent.get("help_topic") == "confirmation":
                     return {"text": "First send status followed by the exact ER-XXXXXXXX reference from your issue card. Wait until the crew has reported completion and the state is awaiting confirmation. Then the original reporter, in the same conversation, can select Yes, resolved or send confirm followed by the issue reference. A configured organizer can also confirm. If the fix did not work, select Still a problem or send reopen followed by the reference. This question has not closed an issue.", "offers": []}
-                if intent.get("help_topic") == "escalation":
-                    return self._open_overview(actor, "Which issue needs attention? Send its exact ER-XXXXXXXX issue reference, or send status followed by the reference. This question has not applied an escalation.")
+                if intent.get("help_topic") in {"escalation", "escalation_instructions"}:
+                    return self._open_overview(actor, "To request organizer review for a known issue, send escalate followed by its exact ER-XXXXXXXX reference. Without an issue reference, an explicit escalation request records an unlinked review request. This instructional question has not created a request or changed an incident.")
                 return {"text": "EventRelay coordinates event-day issues for drinking water, audio, cleanup, and power/facilities. Supported locations: Stage, Dining Hall, Entrance, and Washrooms. Describe the problem and location to report it. Track it with status; crew use accept/decline, start, and done. Only the original reporter or organizer can confirm resolution or reject the reported fix with reopen. Demo staff actions are labelled as simulated.", "offers": []}
             if action == "roster":
                 if not demo_mode() and actor != ORGANIZER:
@@ -338,6 +465,8 @@ class ConversationService:
                 pending = dict(state.get("pending") or {})
                 if intent.get("clarification_id") and intent["clarification_id"] != pending.get("request_id"):
                     raise StoreError("stale_clarification", "That clarification form is no longer current. Describe the issue again.")
+                if "location" in pending:
+                    pending["location"] = _canonical_location(pending["location"])
                 for name in ("summary", "category", "location", "priority"):
                     value = intent.get(name)
                     if value is not None and value != "" and value != "unknown":
@@ -356,7 +485,7 @@ class ConversationService:
                 state.pop("pending", None)
                 state["last_issue"] = issue["issue_id"]
                 self._save(actor, state)
-                return self._render(issue, "Issue recorded and routed using the event's responsibility roster.")
+                return self._render(issue, "Issue recorded and routing checked against the event's responsibility roster.")
             issue_id = intent.get("issue_id") or state.get("last_issue")
             if not isinstance(issue_id, str) or not re.fullmatch(r"ER-[0-9A-F]{8}", issue_id):
                 return {"text": "Which issue? Include its ER-XXXXXXXX reference.", "offers": []}
@@ -364,6 +493,13 @@ class ConversationService:
             if not self._can_view(actor, issue):
                 raise StoreError("wrong_actor", "That issue is not available to this caller.")
             version = intent.get("version")
+            if action == "escalate":
+                note = intent.get("note") or "Organizer review requested for this unresolved issue."
+                issue = self.store.request_escalation(issue_id, actor, note, expected_version=version,
+                                                      idempotency_key=request_id)
+                response = self._render(issue, "Organizer review request recorded. No crew was reassigned or marked complete, and no human notification is claimed.")
+                response["offers"] = []
+                return response
             closed_retry = action == "confirm" and issue["status"] == "closed"
             if version is not None and not closed_retry and (type(version) is not int or issue["version"] != version):
                 raise StoreError("stale_version", "The issue changed. Refresh its status before acting.")
@@ -392,6 +528,8 @@ class ConversationService:
             return self._render(issue, simulated=simulated)
         except StoreError as exc:
             response = {"text": str(exc), "code": exc.code, "offers": []}
+            if action in {"escalate", "my_review_requests", "organizer_review_queue"}:
+                return response
             if state.get("last_issue"):
                 try:
                     current = self.store.issue(state["last_issue"])

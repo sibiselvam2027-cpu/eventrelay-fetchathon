@@ -131,6 +131,111 @@ class HostedStateTests(unittest.TestCase):
                     open_hosted_service(self.storage, now=self.clock)
                 self.assertEqual(writes, self.storage.writes)
 
+    def test_unlinked_review_queue_survives_every_invocation_and_retry(self):
+        self.action("host", {"action": "report", "summary": "Water issue"}, "pending-before-review")
+        before = self.step(lambda session: session.service._state("host"))
+        intent = {"action": "escalate", "note": "The crew has not responded; organizer review is needed."}
+        first = self.action("host", intent, "stable-chat-message")["review_request"]
+        replay = self.action("host", intent, "stable-chat-message")["review_request"]
+        self.assertEqual(first, replay)
+        own = self.action("host", {"action": "my_review_requests"})
+        self.assertEqual([first], own["review_requests"])
+        after = self.step(lambda session: session.service._state("host"))
+        self.assertEqual(before, {key: value for key, value in after.items() if key != "review_requests"})
+        self.assertEqual([], self.action("other", {"action": "my_review_requests"})["review_requests"])
+        denied = self.action("other", {"action": "organizer_review_queue", "actor": "organizer_demo"})
+        self.assertEqual("wrong_actor", denied["code"])
+        queue = self.action("organizer_demo", {"action": "organizer_review_queue"})
+        self.assertEqual([first], queue["review_requests"])
+        self.assertEqual([], self.step(lambda session: session.store.list_issues("wedding-demo")))
+        snapshot = json.loads(self.storage.values[STORAGE_KEY])
+        self.assertEqual(1, snapshot["schema_version"])
+        self.assertIn("review_requests", snapshot["conversation_sql"])
+        self.assertNotIn("review_requests", snapshot["event_sql"])
+
+    def test_known_issue_review_and_existing_offer_survive_reconstruction(self):
+        issue = self.action("host", {"action": "report", "summary": "Speaker silent", "category": "audio", "location": "Stage"}, "known-review-report")["issue"]
+        intent = {"action": "escalate", "issue_id": issue["issue_id"], "version": issue["version"], "note": "Please review this unresolved issue."}
+        reviewed = self.action("host", intent, "known-review-request")["issue"]
+        replay = self.action("host", intent, "known-review-request")["issue"]
+        self.assertEqual(reviewed, replay)
+        self.assertEqual(issue["version"], reviewed["version"])
+        self.assertEqual(issue["offered_to"], reviewed["offered_to"])
+        self.assertEqual(issue["offer_expires_at"], reviewed["offer_expires_at"])
+        denied = self.action("other", intent, "foreign-review")
+        self.assertEqual("wrong_actor", denied["code"])
+        accepted = self.action("staff_ravi", {"action": "accept", "issue_id": issue["issue_id"], "version": issue["version"]})["issue"]
+        self.assertEqual("accepted", accepted["status"])
+        self.assertEqual("staff_ravi", accepted["assigned_to"])
+        self.assertEqual(1, sum(item["event"] == "organizer_review_requested" for item in accepted["history"]))
+
+    def test_older_read_only_help_exit_cannot_rollback_newer_progress(self):
+        issue = self.action("host", {"action": "report", "summary": "Speaker silent", "category": "audio", "location": "Stage"}, "overlap-help")["issue"]
+        accepted = self.action("staff_ravi", {"action": "accept", "issue_id": issue["issue_id"], "version": issue["version"]})["issue"]
+        with open_hosted_service(self.storage, now=self.clock) as older:
+            started = self.action("staff_ravi", {"action": "start", "issue_id": issue["issue_id"], "version": accepted["version"]})["issue"]
+            writes = self.storage.writes
+            older.service.handle("host", "help")
+            checkpoint = older.checkpoint()
+            self.assertFalse(checkpoint["written"])
+        self.assertEqual(writes, self.storage.writes)
+        current = self.step(lambda session: session.store.issue(issue["issue_id"]))
+        self.assertEqual("in_progress", current["status"])
+        self.assertEqual(started["version"], current["version"])
+
+    def test_stale_domain_write_is_rejected_without_overwriting_progress(self):
+        issue = self.action("host", {"action": "report", "summary": "Speaker silent", "category": "audio", "location": "Stage"}, "overlap-write")["issue"]
+        accepted = self.action("staff_ravi", {"action": "accept", "issue_id": issue["issue_id"], "version": issue["version"]})["issue"]
+        older = open_hosted_service(self.storage, now=self.clock)
+        try:
+            self.action("staff_ravi", {"action": "start", "issue_id": issue["issue_id"], "version": accepted["version"]})
+            committed = self.storage.values[STORAGE_KEY]
+            writes = self.storage.writes
+            older.store.complete(issue["issue_id"], "staff_ravi", "This completion used an older invocation snapshot.")
+            with self.assertRaises(HostedStateError) as caught:
+                older.checkpoint()
+            self.assertEqual("stale_snapshot", caught.exception.code)
+            self.assertEqual(committed, self.storage.values[STORAGE_KEY])
+            self.assertEqual(writes, self.storage.writes)
+        finally:
+            older.close()
+        self.assertEqual("in_progress", self.step(lambda session: session.store.issue(issue["issue_id"]))["status"])
+
+    def test_stale_conversation_mutation_is_rejected_on_context_exit(self):
+        self.step(lambda session: None)
+        with self.assertRaises(HostedStateError) as caught:
+            with open_hosted_service(self.storage, now=self.clock) as older:
+                fresh = self.action("fresh_reporter", {"action": "report", "summary": "Speaker silent", "category": "audio", "location": "Stage"}, "fresh-before-older-pending")["issue"]
+                older.service.handle("older_reporter", "Water issue", request_id="older-pending")
+        self.assertEqual("stale_snapshot", caught.exception.code)
+        self.assertEqual(fresh["issue_id"], self.step(lambda session: session.store.list_issues("wedding-demo"))[0]["issue_id"])
+        self.assertIsNone(self.step(lambda session: session.service.context("older_reporter"))["pending_report"])
+
+    def test_normal_checkpoint_updates_baseline_and_skips_duplicate_exit_write(self):
+        with open_hosted_service(self.storage, now=self.clock) as session:
+            issue = session.store.report("wedding-demo", "host", "Speaker silent", "audio", "Stage", idempotency_key="baseline-advance")
+            first = session.checkpoint()
+            self.assertTrue(first["written"])
+            writes = self.storage.writes
+            self.assertFalse(session.checkpoint()["written"])
+            self.assertEqual(writes, self.storage.writes)
+            accepted = session.store.acknowledge(issue["issue_id"], "staff_ravi")
+            self.assertTrue(session.checkpoint()["written"])
+            writes = self.storage.writes
+        self.assertEqual(writes, self.storage.writes)
+        self.assertEqual(accepted["version"], self.step(lambda session: session.store.issue(issue["issue_id"]))["version"])
+
+    def test_old_empty_bootstrap_session_cannot_reset_newly_created_state(self):
+        older = open_hosted_service(self.storage, now=self.clock)
+        try:
+            fresh = self.action("host", {"action": "report", "summary": "Speaker silent", "category": "audio", "location": "Stage"}, "bootstrap-race")["issue"]
+            with self.assertRaises(HostedStateError) as caught:
+                older.checkpoint()
+            self.assertEqual("stale_snapshot", caught.exception.code)
+        finally:
+            older.close()
+        self.assertEqual(fresh["issue_id"], self.step(lambda session: session.store.list_issues("wedding-demo"))[0]["issue_id"])
+
 
 if __name__ == "__main__":
     unittest.main()

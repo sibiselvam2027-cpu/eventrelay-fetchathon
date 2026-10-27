@@ -35,6 +35,17 @@ class ASITests(unittest.TestCase):
         self.assertIsNotNone(result["clarification"])
         self.assertIn("do not guess", json.loads(call.call_args.args[0].data)["messages"][0]["content"])
 
+    def test_explicit_escalation_intent_preserves_reference_or_leaves_it_unlinked(self):
+        for issue_id in (None, "ER-1234ABCD"):
+            with self.subTest(issue_id=issue_id), \
+                 patch.dict(os.environ, {"ASI1_API_KEY": "test-key"}, clear=True), \
+                 patch("eventrelay.asi.urlopen", return_value=response({
+                     "action": "escalate", "issue_id": issue_id, "note": "Crew has not responded."})):
+                result = extract_intent("Please escalate this issue.")
+            self.assertEqual("escalate", result["action"])
+            self.assertEqual(issue_id, result["issue_id"])
+            self.assertEqual("Crew has not responded.", result["note"])
+
     def test_honors_injected_hosted_api_base_url(self):
         data = {"action": "status", "category": "unknown", "priority": "normal"}
         with patch.dict(os.environ, {"ASI1_API_KEY": "hosted-quota-key", "ASI1_BASE_URL": "https://hosted.example/v1/"}), \

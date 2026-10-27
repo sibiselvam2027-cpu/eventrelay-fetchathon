@@ -1,6 +1,6 @@
 [project]
 name = "eventrelay-hospitality"
 version = "0.1.0"
-description = "EventRelay hospitality agent handles drinking-water crew offers and explicit staff decisions."
+description = "Drinking-water guidance and Coordinator referral. Handles trusted refill offers and authenticated crew replies. Synthetic event demo."
 requires-python = ">=3.10,<3.14"
 dependencies = ["uagents==0.25.5", "uagents-core==0.4.12", "openai"]

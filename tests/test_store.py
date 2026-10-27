@@ -55,6 +55,64 @@ class EventStoreTests(unittest.TestCase):
         self.assertEqual("staff_ravi", accepted["assigned_to"])
         self.assertIsNone(accepted["offered_to"])
 
+    def test_requested_escalation_preserves_crew_capacity_deadlines_and_retries(self):
+        before = self.accepted()
+        issue_id = before["issue_id"]
+        self.clock.value += 1
+        reviewed = self.store.request_escalation(issue_id, "host_1", "Crew has not responded.",
+                                                expected_version=before["version"], idempotency_key="review-message-1")
+        for field in ("status", "version", "assigned_to", "offered_to", "offer_expires_at", "resolution_deadline", "accepted_at"):
+            self.assertEqual(before[field], reviewed[field])
+        self.assertTrue(reviewed["escalated"])
+        self.assertEqual("organizer_review_requested", reviewed["escalation_reason"])
+        replay = self.store.request_escalation(issue_id, "host_1", "Crew has not responded.",
+                                              expected_version=before["version"], idempotency_key="review-message-1")
+        self.assertEqual(reviewed, replay)
+        self.assertEqual(1, sum(item["event"] == "organizer_review_requested" for item in replay["history"]))
+        self.assertEqual("staff_sara", self.report()["offered_to"])
+        self.assertDenied("idempotency_conflict", lambda: self.store.request_escalation(
+            issue_id, "host_1", "Changed note", idempotency_key="review-message-1"))
+
+    def test_review_metadata_does_not_invalidate_an_inflight_staff_offer(self):
+        offered = self.report()
+        self.store.request_escalation(offered["issue_id"], "host_1", "Please review this unaccepted offer.",
+                                      expected_version=offered["version"], idempotency_key="offered-review")
+        accepted = self.store.acknowledge(offered["issue_id"], offered["offered_to"], expected_version=offered["version"])
+        self.assertEqual("accepted", accepted["status"])
+        self.assertEqual(offered["offered_to"], accepted["assigned_to"])
+
+    def test_requested_escalation_requires_reporter_or_organizer_even_in_demo(self):
+        issue = self.accepted()
+        for actor in ("another_reporter", "staff_ravi"):
+            self.assertDenied("wrong_actor", lambda actor=actor: self.store.request_escalation(issue["issue_id"], actor))
+        self.assertEqual(issue, self.store.issue(issue["issue_id"]))
+        result = self.store.request_escalation(issue["issue_id"], "organizer_demo", idempotency_key="organizer-review")
+        self.assertTrue(result["escalated"])
+        self.assertEqual(issue["assigned_to"], result["assigned_to"])
+
+    def test_requested_escalation_respects_completed_closed_and_stale_versions(self):
+        offered = self.report()
+        accepted = self.store.acknowledge(offered["issue_id"], offered["offered_to"])
+        self.assertDenied("stale_version", lambda: self.store.request_escalation(
+            offered["issue_id"], "host_1", expected_version=offered["version"]))
+        self.assertEqual(accepted, self.store.issue(offered["issue_id"]))
+        completed = self.store.complete(offered["issue_id"], accepted["assigned_to"], "Crew reports a sound check.")
+        self.assertDenied("invalid_transition", lambda: self.store.request_escalation(offered["issue_id"], "host_1"))
+        self.assertEqual(completed, self.store.issue(offered["issue_id"]))
+        closed = self.store.confirm(offered["issue_id"], "host_1", True)
+        self.assertDenied("invalid_transition", lambda: self.store.request_escalation(offered["issue_id"], "host_1"))
+        self.assertEqual(closed, self.store.issue(offered["issue_id"]))
+
+    def test_concurrent_same_review_request_records_one_audit_event(self):
+        issue = self.accepted()
+        def request(_):
+            return self.store.request_escalation(issue["issue_id"], "host_1", "Please review.",
+                                                 expected_version=issue["version"], idempotency_key="same-review")
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(request, range(2)))
+        self.assertEqual(results[0], results[1])
+        self.assertEqual(1, sum(item["event"] == "organizer_review_requested" for item in results[0]["history"]))
+
     def test_decline_uses_backup_then_escalates_without_claiming_acceptance(self):
         issue = self.report()
         backup = self.store.acknowledge(issue["issue_id"], "staff_ravi", "decline")

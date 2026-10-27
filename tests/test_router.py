@@ -74,6 +74,49 @@ class RouterTests(unittest.TestCase):
         self.assertEqual("cleanup", response["issue"]["category"])
         self.assertEqual("Entrance", response["issue"]["location"])
 
+    def test_model_main_stage_aliases_use_registered_stage_without_a_location_loop(self):
+        prompt = "Drinking water has run out at the main stage, please find a crew and get them to accept the job."
+        for index, alias in enumerate(("Main Stage", "MainStage", "main_stage", "main-stage")):
+            with self.subTest(alias=alias):
+                response = self.service.handle(f"reporter_stage_{index}", prompt, intent={
+                    "action": "report", "summary": prompt, "category": "drinking_water", "location": alias},
+                    request_id=f"model-stage-{index}")
+                self.assertEqual("Stage", response["issue"]["location"])
+                self.assertNotEqual("form", response.get("card", {}).get("kind"))
+
+    def test_main_stage_model_clarification_resolves_category_without_reasking_location(self):
+        original = "Water issue at the Main Stage."
+        first = self.service.handle("reporter_alice", original, intent={
+            "action": "report", "summary": original, "category": "unknown", "location": "MainStage"},
+            request_id="stage-clarification")
+        self.assertEqual(["category"], [field["name"] for field in first["card"]["payload"]["fields"]])
+        followup = "The water ran out at the Main Stage."
+        response = self.service.handle("reporter_alice", followup, intent={
+            "action": "report", "summary": followup, "category": "drinking_water", "location": "main_stage"})
+        self.assertEqual("Stage", response["issue"]["location"])
+        self.assertEqual("drinking_water", response["issue"]["category"])
+
+    def test_natural_followup_repairs_a_persisted_legacy_main_stage_location(self):
+        self.service._save("reporter_alice", {"pending": {
+            "summary": "Drinking water has run out.", "category": "drinking_water", "location": "Main Stage",
+            "priority": "normal", "request_id": "legacy-stage-pending"}})
+        response = self.service.handle("reporter_alice", "The water ran out at the Main Stage.")
+        self.assertEqual("Stage", response["issue"]["location"])
+        self.assertEqual("drinking_water", response["issue"]["category"])
+
+    def test_dining_hall_variants_are_bounded_to_the_registered_location(self):
+        for index, alias in enumerate(("DiningHall", "dining_hall", "dining-hall", "  DINING   HALL  ")):
+            response = self.service.handle(f"reporter_dining_{index}", "A spill needs cleanup.", intent={
+                "action": "report", "summary": "A spill needs cleanup.", "category": "cleanup", "location": alias},
+                request_id=f"dining-alias-{index}")
+            self.assertEqual("Dining Hall", response["issue"]["location"])
+        for index, location in enumerate(("Main Stage 2", "Stage A", "Dining Hall balcony", "Terrace")):
+            response = self.service.handle(f"reporter_unknown_{index}", "The speaker is silent.", intent={
+                "action": "report", "summary": "The speaker is silent.", "category": "audio", "location": location})
+            self.assertNotIn("issue", response)
+            self.assertEqual([], response["offers"])
+            self.assertEqual(["location"], [field["name"] for field in response["card"]["payload"]["fields"]])
+
     def test_descriptive_questions_answer_scope_without_consuming_pending_report(self):
         self.service.handle("reporter_alice", "Water issue in the Dining Hall.", request_id="pending-water")
         pending = self.service.context("reporter_alice")["pending_report"]
@@ -178,11 +221,14 @@ class RouterTests(unittest.TestCase):
         issue = self.report()["issue"]
         response = self.service.handle("reporter_bob", "The problem is still not resolved and the crew hasn't responded in a while — can you escalate it?")
         self.assertIn("exact ER-XXXXXXXX issue reference", response["text"])
-        self.assertIn("No open issues are visible to this conversation.", response["text"])
+        self.assertIn("No existing incident was changed", response["text"])
         self.assertNotIn("issue", response)
         self.assertEqual([], response["offers"])
         self.assertEqual(issue, self.store.issue(issue["issue_id"]))
         self.assertEqual(1, len(self.store.list_issues("wedding-demo")))
+        self.assertRegex(response["review_request"]["review_id"], r"^RV-[0-9A-F]{8}$")
+        self.assertEqual("queued", response["review_request"]["status"])
+        self.assertEqual("reporter_bob", response["review_request"]["actor"])
 
     def test_malformed_issue_reference_never_becomes_a_new_report(self):
         for question in ("ER-10245", "Can you check the status of issue ER-10245? The speaker is silent at the Stage."):
@@ -226,19 +272,128 @@ class RouterTests(unittest.TestCase):
         self.assertTrue(all(reference not in response["text"] for reference in hidden))
         self.assertEqual([], response["offers"])
 
-    def test_escalation_question_lists_actual_visible_choices_without_action(self):
+    def test_unlinked_escalation_acknowledges_context_without_unrelated_incidents(self):
+        os.environ["EVENTRELAY_DEMO_MODE"] = "1"
         own = self.report(request_id="alice-escalation-choice")["issue"]
         hidden = self.report(actor="reporter_bob", request_id="bob-escalation-choice", category="cleanup", location="Entrance")["issue"]
         before = self.service._state("reporter_alice")
         with patch.object(self.store, "tick", side_effect=AssertionError("Issue choice must not tick")):
             response = self.service.handle("reporter_alice", "The problem is still not resolved and the crew hasn't responded in a while — can you escalate it?")
-        self.assertIn("Which issue needs attention?", response["text"])
-        self.assertIn(own["issue_id"], response["text"])
+        self.assertIn("problem is still unresolved and the crew has not responded", response["text"])
+        self.assertIn("Escalation request recorded for organizer review as " + response["review_request"]["review_id"] + " (queued)", response["text"])
+        self.assertNotIn(own["issue_id"], response["text"])
         self.assertNotIn(hidden["issue_id"], response["text"])
+        self.assertNotIn("issues", response)
+        self.assertNotIn("Open issues", response["text"])
+        self.assertIn("DEMO: synthetic", response["text"])
         self.assertEqual([], response["offers"])
-        self.assertEqual(before, self.service._state("reporter_alice"))
+        after = self.service._state("reporter_alice")
+        self.assertEqual(before, {key: value for key, value in after.items() if key != "review_requests"})
+        self.assertEqual(1, len(after["review_requests"]))
         self.assertEqual(own, self.store.issue(own["issue_id"]))
         self.assertEqual(2, len(self.store.list_issues("wedding-demo")))
+
+    def test_unlinked_review_retries_preserve_pending_and_last_issue(self):
+        issue = self.report()["issue"]
+        self.service.handle("reporter_alice", "Water issue in the Dining Hall.", request_id="pending-review-context")
+        before = self.service._state("reporter_alice")
+        prompt = "The problem is still not resolved — can you escalate it?"
+        first = self.service.handle("reporter_alice", prompt, request_id="chat-message-uuid")
+        replay = self.service.handle("reporter_alice", prompt, request_id="chat-message-uuid")
+        self.assertEqual(first["review_request"], replay["review_request"])
+        self.assertIn("Escalation request recorded for organizer review as " + first["review_request"]["review_id"], first["text"])
+        self.assertEqual("queued", first["review_request"]["status"])
+        after = self.service._state("reporter_alice")
+        self.assertEqual(before, {key: value for key, value in after.items() if key != "review_requests"})
+        self.assertEqual(1, len(after["review_requests"]))
+        self.assertEqual(issue, self.store.issue(issue["issue_id"]))
+        conflict = self.service.handle("reporter_alice", "Can you escalate a different problem?", request_id="chat-message-uuid")
+        self.assertEqual("idempotency_conflict", conflict["code"])
+        self.assertEqual([], conflict["offers"])
+        self.assertEqual(after, self.service._state("reporter_alice"))
+
+    def test_generic_review_request_does_not_invent_unresponsive_crew(self):
+        response = self.service.handle("reporter_alice", "Can you escalate it?", request_id="generic-review")
+        self.assertIn("Your request for organizer follow-up has been recorded", response["text"])
+        self.assertNotIn("crew has not responded", response["text"])
+        self.assertNotIn("problem is still unresolved", response["text"])
+        self.assertEqual("queued", response["review_request"]["status"])
+        self.assertEqual([], self.store.list_issues("wedding-demo"))
+
+    def test_unlinked_review_queue_bounds_notes_and_never_drops_queued_requests(self):
+        for index in range(20):
+            response = self.service.handle("reporter_alice", "Request review", intent={
+                "action": "escalate", "note": "x" * 1500}, request_id=f"review-{index}")
+            self.assertEqual(1000, len(response["review_request"]["note"]))
+        before = self.service._state("reporter_alice")
+        full = self.service.handle("reporter_alice", "Can you escalate it?", request_id="one-too-many")
+        self.assertEqual("review_queue_full", full["code"])
+        self.assertEqual([], full["offers"])
+        self.assertEqual(before, self.service._state("reporter_alice"))
+        replay = self.service.handle("reporter_alice", "Request review", intent={
+            "action": "escalate", "note": "x" * 1500}, request_id="review-0")
+        self.assertEqual(before["review_requests"][0], replay["review_request"])
+        self.assertEqual([], self.store.list_issues("wedding-demo"))
+
+    def test_review_requests_are_own_only_and_aggregate_requires_organizer_even_demo(self):
+        alice = self.service.handle("reporter_alice", "Can you escalate the audio problem?", request_id="alice-review")["review_request"]
+        bob = self.service.handle("reporter_bob", "Can you escalate the cleanup problem?", request_id="bob-review")["review_request"]
+        for mode in ("0", "1"):
+            os.environ["EVENTRELAY_DEMO_MODE"] = mode
+            own = self.service.handle("reporter_alice", "my review requests")
+            self.assertEqual([alice], own["review_requests"])
+            self.assertNotIn(bob["review_id"], own["text"])
+            denied = self.service.handle("reporter_alice", '{"action":"organizer_review_queue","actor":"organizer_demo"}')
+            self.assertEqual("wrong_actor", denied["code"])
+            self.assertNotIn("review_requests", denied)
+            self.assertNotIn(bob["review_id"], denied["text"])
+        queue = self.service.handle("organizer_demo", "organizer review queue")
+        self.assertEqual({alice["review_id"], bob["review_id"]}, {item["review_id"] for item in queue["review_requests"]})
+        self.assertEqual([], queue["offers"])
+
+    def test_review_listings_and_how_to_questions_are_read_only(self):
+        self.service.handle("reporter_alice", "Can you escalate it?", request_id="read-only-review")
+        self.service.handle("reporter_alice", "Water issue in the Dining Hall.", request_id="pending-listing")
+        before = self.service._state("reporter_alice")
+        with patch.object(self.store, "tick", side_effect=AssertionError("Listing must not tick")), \
+             patch.object(self.service, "_save", side_effect=AssertionError("Listing must not save")):
+            for actor, command in (("reporter_alice", "my review requests"),
+                                   ("organizer_demo", "organizer review queue"),
+                                   ("reporter_alice", "How do I escalate an issue?")):
+                response = self.service.handle(actor, command)
+                self.assertEqual([], response["offers"])
+        self.assertEqual(before, self.service._state("reporter_alice"))
+        self.assertEqual([], self.store.list_issues("wedding-demo"))
+
+    def test_known_escalation_uses_actual_reporter_authority_even_in_demo(self):
+        os.environ["EVENTRELAY_DEMO_MODE"] = "1"
+        issue = self.report()["issue"]
+        prompt = "Can you escalate " + issue["issue_id"] + "?"
+        denied = self.service.handle("reporter_bob", prompt, request_id="unauthorized-review")
+        self.assertEqual("wrong_actor", denied["code"])
+        self.assertEqual([], denied["offers"])
+        self.assertEqual(issue, self.store.issue(issue["issue_id"]))
+        before_state = self.service._state("reporter_alice")
+        requested = self.service.handle("reporter_alice", prompt, request_id="authorized-review")
+        self.assertTrue(requested["issue"]["escalated"])
+        self.assertEqual(issue["status"], requested["issue"]["status"])
+        self.assertEqual(issue["offered_to"], requested["issue"]["offered_to"])
+        self.assertEqual(issue["version"], requested["issue"]["version"])
+        self.assertEqual([], requested["offers"])
+        self.assertEqual(before_state, self.service._state("reporter_alice"))
+
+    def test_model_cannot_guess_an_owned_last_issue_for_escalation(self):
+        issue = self.report()["issue"]
+        before = self.service._state("reporter_alice")
+        response = self.service.handle("reporter_alice", "Please get an organizer to review the unresolved problem.", intent={
+            "action": "escalate", "issue_id": issue["issue_id"], "note": "Model selected the last issue."},
+            request_id="unlinked-not-guessed")
+        self.assertEqual("queued", response["review_request"]["status"])
+        self.assertNotIn("Model selected", response["review_request"]["note"])
+        self.assertEqual(issue, self.store.issue(issue["issue_id"]))
+        after = self.service._state("reporter_alice")
+        self.assertEqual(before, {key: value for key, value in after.items() if key != "review_requests"})
+        self.assertEqual([], response["offers"])
 
     def test_standalone_reference_and_identified_escalation_use_status_authority(self):
         issue = self.report()["issue"]
@@ -259,6 +414,26 @@ class RouterTests(unittest.TestCase):
         response = self.service.handle("reporter_alice", "There is a spill at the Entrance. Show me all open event issues.")
         self.assertEqual("cleanup", response["issue"]["category"])
         self.assertEqual("Entrance", response["issue"]["location"])
+
+    def test_cleanup_without_available_crew_explains_actual_organizer_escalation(self):
+        os.environ["EVENTRELAY_DEMO_MODE"] = "1"
+        for index in range(2):
+            issue = self.report(category="cleanup", location="Dining Hall",
+                                summary="A spill needs cleanup in the Dining Hall.", request_id=f"busy-cleanup-{index}")["issue"]
+            self.action(issue["offered_to"], issue["issue_id"], "accept")
+        response = self.report(category="cleanup", location="Dining Hall",
+                               summary="Another spill needs cleanup in the Dining Hall.", request_id="no-cleanup-capacity")
+        issue = response["issue"]
+        self.assertEqual("escalated", issue["status"])
+        self.assertEqual("no_available_staff", issue["escalation_reason"])
+        self.assertIsNone(issue["assigned_to"])
+        self.assertEqual([], response["offers"])
+        self.assertIn(issue["issue_id"], response["text"])
+        self.assertIn("No eligible configured cleanup crew is currently available", response["text"])
+        self.assertIn("escalated for organizer attention", response["text"])
+        self.assertIn("nobody has accepted", response["text"])
+        self.assertIn("DEMO: synthetic", response["text"])
+        self.assertNotIn("no_available_staff", response["text"])
 
     def test_public_reporter_cannot_accept_decline_or_complete_as_crew(self):
         issue = self.report()["issue"]

@@ -402,6 +402,49 @@ class EventStore:
                           {"note": note, "reporter_confirmation_required": True})
             return self._snapshot(conn, issue_id)
 
+    def request_escalation(self, issue_id, actor_id, note="", expected_version=None, idempotency_key=None):
+        """Record organizer review without replacing crew or notifying a human."""
+        actor_id = _text(actor_id, "actor id", 200)
+        if not isinstance(note, str) or len(note) > 1000:
+            raise StoreError("invalid_request", "Invalid organizer-review note.")
+        note = note.strip() or "Organizer review requested."
+        key = _text(idempotency_key, "request id", 200) if idempotency_key is not None else None
+        key_hash = hashlib.sha256(key.encode()).hexdigest() if key else None
+        request_hash = hashlib.sha256(_json({"note": note}).encode()).hexdigest()
+        timestamp = float(self._now())
+        with self._tx() as conn:
+            row = self._row(conn, issue_id)
+            event = self._event(conn, row["event_id"])
+            if actor_id not in (row["reporter_id"], event["organizer_id"]):
+                raise StoreError("wrong_actor", "Only the original reporter or organizer can request escalation for this issue.")
+            if row["status"] == "closed":
+                raise StoreError("invalid_transition", "A closed issue cannot be escalated. Report a new unresolved problem.")
+            if row["status"] == "awaiting_confirmation":
+                raise StoreError("invalid_transition", "The crew has reported completion. Confirm the fix or use Still a problem to reopen it before requesting escalation.")
+            previous = conn.execute("""SELECT timestamp,details FROM issue_history
+                WHERE issue_id=? AND event='organizer_review_requested' AND actor_id=?
+                ORDER BY event_id DESC""", (issue_id, actor_id)).fetchall()
+            for entry in previous:
+                details = json.loads(entry["details"])
+                same_key = key_hash is not None and details.get("request_key_hash") == key_hash
+                same_active_request = (key_hash is None and row["escalated_at"] is not None
+                                       and entry["timestamp"] >= row["escalated_at"]
+                                       and details.get("request_hash") == request_hash)
+                if same_key or same_active_request:
+                    if details.get("request_hash") != request_hash:
+                        raise StoreError("idempotency_conflict", "This review request ID was already used with a different note.")
+                    return self._snapshot(conn, issue_id)
+            self._version(row, expected_version)
+            # Review metadata must not invalidate the version on an in-flight
+            # crew offer. No operational fields or deadlines are changed.
+            conn.execute("""UPDATE issues SET escalated_at=?,escalation_reason=?,updated_at=?
+                WHERE issue_id=?""", (row["escalated_at"] if row["escalated_at"] is not None else timestamp,
+                                      row["escalation_reason"] or "organizer_review_requested", timestamp, issue_id))
+            self._history(conn, issue_id, "organizer_review_requested", timestamp, actor_id,
+                          {"note": note, "request_key_hash": key_hash, "request_hash": request_hash,
+                           "organizer_notification_sent": False, "crew_responsibility_unchanged": True})
+            return self._snapshot(conn, issue_id)
+
     def confirm(self, issue_id, actor_id, resolved: bool, note="", expected_version=None):
         actor_id = _text(actor_id, "actor id", 200)
         if type(resolved) is not bool:

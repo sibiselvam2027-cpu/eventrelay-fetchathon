@@ -1,6 +1,6 @@
 [project]
 name = "eventrelay-housekeeping"
 version = "0.1.0"
-description = "EventRelay housekeeping agent handles spill and cleanup crew offers and explicit staff decisions."
+description = "Spill/cleanup guidance and Coordinator referral. Handles trusted cleanup offers and authenticated crew replies. Physical work is simulated."
 requires-python = ">=3.10,<3.14"
 dependencies = ["uagents==0.25.5", "uagents-core==0.4.12", "openai"]

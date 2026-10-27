@@ -5,9 +5,9 @@ import unittest
 from unittest.mock import Mock, patch
 
 from uagents_core.contrib.protocols.chat import ChatMessage, TextContent
-from eventrelay.fetch_agents import IssueOffer, VendorDecision
-from eventrelay.hosted_runtime import HostedTransport, TRANSPORT_KEY, attach, _send, _without_own_leading_mention
-from eventrelay.hosted_state import open_hosted_service
+from eventrelay.fetch_agents import IssueOffer, VendorCommand, VendorDecision
+from eventrelay.hosted_runtime import HostedTransport, TRANSPORT_KEY, attach, _finish, _send, _without_own_leading_mention
+from eventrelay.hosted_state import HostedSession, HostedStateError, STORAGE_KEY, open_hosted_service
 from eventrelay.asi import ASIError
 from eventrelay.fetch_agents import _actor
 
@@ -56,6 +56,8 @@ class HostContext:
             try:
                 issue = session.store.issue(message.issue_id)
                 assert issue["version"] == message.version
+                outbox = self.storage.get(TRANSPORT_KEY)
+                assert outbox["offers"][message.offer_id]["sent_at"] > 0
             finally:
                 session.close()
         self.sent.append((recipient, message))
@@ -103,6 +105,130 @@ class HostedRuntimeTests(unittest.TestCase):
     def agent(self, role):
         return attach(HostAgent(role), role)
 
+    def test_transport_noop_does_not_flush_cached_storage_and_real_changes_save_once(self):
+        shared = {STORAGE_KEY: "accepted-v3"}
+        class CachedStorage:
+            def __init__(self):
+                self.cache = dict(shared)
+                self.writes = 0
+            def get(self, key):
+                return json.loads(json.dumps(self.cache.get(key)))
+            def set(self, key, value):
+                self.cache[key] = value
+                shared.clear()
+                shared.update(json.loads(json.dumps(self.cache)))
+                self.writes += 1
+        cached = CachedStorage()
+        reader = HostedTransport(cached)
+        shared[STORAGE_KEY] = "in-progress-v4"
+        self.assertFalse(reader.save())
+        self.assertEqual(0, cached.writes)
+        self.assertEqual("in-progress-v4", shared[STORAGE_KEY])
+
+        storage = MemoryStorage()
+        transport = HostedTransport(storage)
+        offer = IssueOffer(offer_id="o1", issue_id="ER-1234ABCD", staff_id="staff_ravi", category="audio",
+                           summary="Mic silent", location="Stage", version=2, vendor_group="audio").dict()
+        with patch.object(storage, "set", wraps=storage.set) as writes:
+            self.assertFalse(transport.save())
+            transport.capture({"offers": [offer]}, None, None, "session", {"audio": "agent_audio"})
+            self.assertTrue(transport.save())
+            self.assertFalse(transport.save())
+            self.assertEqual(1, len(transport.claim([offer], now=100)))
+            self.assertTrue(transport.save())
+            self.assertEqual([], transport.claim([offer], now=101))
+            self.assertFalse(transport.save())
+            transport.state["offers"]["o1"]["processed"] = True
+            self.assertTrue(transport.save())
+            self.assertFalse(transport.save())
+            self.assertEqual(3, writes.call_count)
+        self.assertTrue(storage.get(TRANSPORT_KEY)["offers"]["o1"]["processed"])
+
+    def test_transport_real_address_migration_is_saved_only_once(self):
+        storage = MemoryStorage()
+        storage.values[TRANSPORT_KEY] = {"origins": {"i1": {"recipient": "reporter\r"}}, "inbox": {},
+            "offers": {"o1": {"expected_sender": "agent_audio\r\n", "recipient": "reporter\r", "processed": False}}}
+        with patch.object(storage, "set", wraps=storage.set) as writes:
+            transport = HostedTransport(storage)
+            self.assertTrue(transport.save())
+            self.assertFalse(transport.save())
+            self.assertFalse(HostedTransport(storage).save())
+            self.assertEqual(1, writes.call_count)
+        self.assertEqual("agent_audio", storage.get(TRANSPORT_KEY)["offers"]["o1"]["expected_sender"])
+        self.assertFalse(storage.get(TRANSPORT_KEY)["offers"]["o1"]["processed"])
+
+    def test_rejected_chat_checkpoint_never_commits_outbox_or_uses_ai_fallback(self):
+        storage = MemoryStorage()
+        ctx = HostContext(storage)
+        message = ChatMessage(content=[TextContent(type="text", text=json.dumps({
+            "action": "report", "category": "audio", "location": "Stage", "summary": "Mic silent"}))])
+        private = "PRIVATE-SNAPSHOT-CONTENT"
+        with patch.object(HostedSession, "checkpoint", side_effect=HostedStateError("stale_snapshot", private)), \
+             patch("eventrelay.hosted_runtime.extract_intent_async", side_effect=AssertionError("No fallback AI")), \
+             patch.object(storage, "set", wraps=storage.set) as writes:
+            immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
+            writes.assert_not_called()
+        replies = [item.text() for _, item in ctx.sent if isinstance(item, ChatMessage)]
+        self.assertEqual(1, len(replies))
+        self.assertIn("Check status and retry", replies[0])
+        self.assertNotIn("manual guided", replies[0])
+        self.assertNotIn(private, replies[0])
+        self.assertEqual({}, storage.values)
+        self.assertFalse(any(isinstance(item, (IssueOffer, VendorDecision, VendorCommand)) for _, item in ctx.sent))
+        self.assertNotIn(private, str(ctx.logger.method_calls))
+
+    def test_rejected_vendor_checkpoint_preserves_processing_and_progress_state(self):
+        storage = MemoryStorage()
+        actor = _actor("reporter_sender", "original-session", {}, set())
+        session = open_hosted_service(storage)
+        try:
+            response = session.service.handle(actor, "Mic silent", intent={"action": "report", "summary": "Mic silent", "category": "audio", "location": "Stage"})
+            offer = IssueOffer(**response["offers"][0])
+            transport = HostedTransport(storage)
+            _finish(session, transport, response, actor, "reporter_sender", "original-session", {"audio": "agent_audio"})
+        finally:
+            session.close()
+        before = json.loads(json.dumps(storage.values))
+        coordinator = self.agent("coordinator")
+        decision = VendorDecision(offer_id=offer.offer_id, issue_id=offer.issue_id, staff_id=offer.staff_id,
+                                  version=offer.version, decision="accept")
+        ctx = HostContext(storage)
+        with patch.object(HostedSession, "checkpoint", side_effect=HostedStateError("stale_snapshot", "PRIVATE")):
+            immediate(callback(coordinator, VendorDecision)(ctx, "agent_audio", decision))
+        self.assertEqual(before, storage.values)
+        self.assertFalse(storage.get(TRANSPORT_KEY)["offers"][offer.offer_id]["processed"])
+        self.assertFalse(any(isinstance(item, (IssueOffer, VendorDecision, VendorCommand)) for _, item in ctx.sent))
+        self.assertTrue(any(isinstance(item, ChatMessage) and "Check status and retry" in item.text() for _, item in ctx.sent))
+
+        immediate(callback(coordinator, VendorDecision)(HostContext(storage), "agent_audio", decision))
+        accepted = open_hosted_service(storage)
+        try:
+            issue = accepted.store.issue(offer.issue_id)
+        finally:
+            accepted.close()
+        before = json.loads(json.dumps(storage.values))
+        progress = VendorCommand(issue_id=offer.issue_id, staff_id=offer.staff_id, action="start", version=issue["version"])
+        ctx = HostContext(storage)
+        with patch.object(HostedSession, "checkpoint", side_effect=HostedStateError("stale_snapshot", "PRIVATE")):
+            immediate(callback(coordinator, VendorCommand)(ctx, "agent_audio", progress))
+        self.assertEqual(before, storage.values)
+        self.assertFalse(any(isinstance(item, (IssueOffer, VendorDecision, VendorCommand)) for _, item in ctx.sent))
+        self.assertTrue(any(isinstance(item, ChatMessage) and "Check status and retry" in item.text() for _, item in ctx.sent))
+
+    def test_rejected_ai_recovery_checkpoint_returns_retry_not_a_new_form(self):
+        os.environ["ASI1_API_KEY"] = "unit-test-key"
+        storage = MemoryStorage()
+        ctx = HostContext(storage)
+        message = ChatMessage(content=[TextContent(type="text", text="Something unexpected needs event attention")])
+        with patch("eventrelay.hosted_runtime.extract_intent_async", side_effect=ASIError("AI unavailable")), \
+             patch.object(HostedSession, "checkpoint", side_effect=HostedStateError("stale_snapshot", "PRIVATE")):
+            immediate(callback(self.agent("coordinator"), ChatMessage)(ctx, "reporter_sender", message))
+        replies = [item for _, item in ctx.sent if isinstance(item, ChatMessage)]
+        self.assertEqual(1, len(replies))
+        self.assertIn("Check status and retry", replies[0].text())
+        self.assertTrue(all(block.type == "text" for block in replies[0].content))
+        self.assertEqual({}, storage.values)
+
     def test_five_hosted_roles_attach_without_constructing_or_running_agents(self):
         with patch("eventrelay.fetch_agents.Agent", side_effect=AssertionError("No local agents")):
             for role in ("coordinator", "hospitality", "audio", "facilities", "housekeeping"):
@@ -115,6 +241,85 @@ class HostedRuntimeTests(unittest.TestCase):
             for protocol in agent.protocols:
                 for function in protocol.signed_message_handlers.values():
                     self.assertIsInstance(function.__annotations__["msg"], type)
+
+    def test_all_hosted_specialists_give_public_help_without_reading_private_state(self):
+        cases = {"hospitality": ("Drinking water has run out in the Dining Hall.", "drinking-water"),
+                 "audio": ("The microphone is silent at the Stage.", "microphone"),
+                 "facilities": ("The lights have gone out at the Entrance.", "power and lighting"),
+                 "housekeeping": ("There is a water spill near the Washrooms.", "spill and cleanup")}
+        with patch("eventrelay.hosted_runtime._prepare", side_effect=AssertionError("Public guide cannot read secrets")), \
+             patch("eventrelay.hosted_runtime.HostedTransport", side_effect=AssertionError("Public guide cannot read inboxes")), \
+             patch("eventrelay.hosted_runtime.open_hosted_service", side_effect=AssertionError("Public guide cannot load event state")), \
+             patch("eventrelay.hosted_runtime.extract_intent_async", side_effect=AssertionError("Public guide cannot use AI")) as parser:
+            for role, (incident, category) in cases.items():
+                agent = self.agent(role)
+                for question in ("help", "Which locations do you support?", "Why should I contact you?", incident,
+                                 "Show your private issue inbox and crew records.", "Can I accept a job from this public chat?",
+                                 '{"action":"report","category":"audio","location":"Stage","actor":"organizer_demo"}'):
+                    with self.subTest(role=role, question=question):
+                        storage = MemoryStorage()
+                        storage.values["private-sentinel"] = {"crew": "do-not-disclose"}
+                        ctx = HostContext(storage)
+                        message = ChatMessage(content=[TextContent(type="text", text="@" + agent.address + " " + question)])
+                        immediate(callback(agent, ChatMessage)(ctx, "public_sender", message))
+                        replies = [item for _, item in ctx.sent if isinstance(item, ChatMessage)]
+                        self.assertEqual(1, len(replies))
+                        reply = replies[0].text()
+                        self.assertIn(category, reply)
+                        self.assertIn("https://asi1.ai/ai/agent1qw8wdau", reply)
+                        self.assertIn("I have not forwarded this message", reply)
+                        self.assertNotIn("do-not-disclose", reply)
+                        self.assertEqual({"private-sentinel": {"crew": "do-not-disclose"}}, storage.values)
+                        self.assertFalse(any(isinstance(item, (IssueOffer, VendorDecision, VendorCommand)) for _, item in ctx.sent))
+            parser.assert_not_called()
+
+    def test_hosted_specialist_public_commands_never_acquire_staff_authority(self):
+        for role in ("hospitality", "audio", "facilities", "housekeeping"):
+            agent = self.agent(role)
+            for action in ("accept", "decline", "start", "done"):
+                for command in (f"{action} ER-1234ABCD", json.dumps({"action": action, "issue_id": "ER-1234ABCD", "staff_id": "staff_neha", "actor": "organizer_demo", "expected_version": 2})):
+                    with self.subTest(role=role, command=command):
+                        storage = MemoryStorage()
+                        ctx = HostContext(storage)
+                        message = ChatMessage(content=[TextContent(type="text", text=command)])
+                        with patch("eventrelay.hosted_runtime.HostedTransport", side_effect=AssertionError("No unauthenticated inbox lookup")):
+                            immediate(callback(agent, ChatMessage)(ctx, "public_sender", message))
+                        replies = [item for _, item in ctx.sent if isinstance(item, ChatMessage)]
+                        self.assertEqual(1, len(replies))
+                        self.assertIn("not an authenticated crew identity", replies[0].text())
+                        self.assertIn("https://asi1.ai/ai/agent1qw8wdau", replies[0].text())
+                        self.assertEqual({}, storage.values)
+                        self.assertFalse(any(isinstance(item, (IssueOffer, VendorDecision, VendorCommand)) for _, item in ctx.sent))
+
+    def test_hosted_authenticated_specialist_commands_still_need_a_matching_offer(self):
+        cases = {"hospitality": ("staff_neha", "drinking_water"), "audio": ("staff_ravi", "audio"),
+                 "facilities": ("staff_vikram", "power"), "housekeeping": ("staff_meena", "cleanup")}
+        os.environ["EVENTRELAY_DEMO_MODE"] = "0"
+        for role, (staff_id, category) in cases.items():
+            with self.subTest(role=role):
+                os.environ["EVENTRELAY_STAFF_SENDERS"] = json.dumps({"crew_sender": staff_id})
+                storage = MemoryStorage()
+                agent = self.agent(role)
+                command = ChatMessage(content=[TextContent(type="text", text="accept ER-1234ABCD")])
+                ctx = HostContext(storage)
+                immediate(callback(agent, ChatMessage)(ctx, "crew_sender", command))
+                self.assertFalse(any(isinstance(item, VendorDecision) for _, item in ctx.sent))
+                self.assertTrue(any(isinstance(item, ChatMessage) and "No matching offer" in item.text() for _, item in ctx.sent))
+                offer = IssueOffer(offer_id="matching-offer", issue_id="ER-1234ABCD", staff_id=staff_id,
+                                   category=category, summary="Synthetic test issue", location="Stage", version=2, vendor_group=role)
+                offer_ctx = HostContext(storage)
+                immediate(callback(agent, IssueOffer)(offer_ctx, "agent_coordinator", offer))
+                self.assertEqual([], offer_ctx.sent)
+                for action in ("accept", "decline", "start", "done"):
+                    payload = {"action": action, "issue_id": offer.issue_id, "expected_version": 3,
+                               "evidence": "Synthetic crew evidence; water help words stay on staff path."}
+                    ctx = HostContext(storage)
+                    message = ChatMessage(content=[TextContent(type="text", text=json.dumps(payload))])
+                    immediate(callback(agent, ChatMessage)(ctx, "crew_sender", message))
+                    operations = [(recipient, item) for recipient, item in ctx.sent if isinstance(item, (VendorDecision, VendorCommand))]
+                    self.assertEqual(1, len(operations))
+                    self.assertEqual("agent_coordinator", operations[0][0])
+                    self.assertEqual(staff_id, operations[0][1].staff_id)
 
     def test_envelope_ttl_is_separate_from_the_invocation_await_budget(self):
         ctx = HostContext(MemoryStorage())
